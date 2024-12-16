@@ -1,0 +1,4 @@
+﻿  2048.cpp
+LINK : warning LNK4075: 忽略“/INCREMENTAL”(由于“/OPT:ICF”规范)
+MSVCRT.lib(exe_winmain.obj) : error LNK2019: 无法解析的外部符号 WinMain，函数 "int __cdecl __scrt_common_main_seh(void)" (?__scrt_common_main_seh@@YAHXZ) 中引用了该符号
+E:\CS\repository\my2048\x64\Release\my2048.exe : fatal error LNK1120: 1 个无法解析的外部命令
