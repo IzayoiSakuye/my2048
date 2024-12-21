@@ -30,7 +30,7 @@ enum color {
 struct pos {
 	long long x;
 	long long y;
-}grid_position[SIZE][SIZE];
+}grid_pos[SIZE][SIZE];
 // 记录各格数字
 int nums[SIZE][SIZE];
 
@@ -43,10 +43,11 @@ void initWindows() {
 	// 预处理每个格子的坐标
 	for (int i = 0; i < SIZE; i++) {
 		for (int j = 0; j < SIZE; j++) {
-			grid_position[i][j].x = i * GRID_WIDTH + (i + 1) * INTERVALS;
-			grid_position[i][j].y = j * GRID_WIDTH + (j + 1) * INTERVALS;
+			grid_pos[i][j].x = i * GRID_WIDTH + (i + 1) * INTERVALS;
+			grid_pos[i][j].y = j * GRID_WIDTH + (j + 1) * INTERVALS;
 		}
 	}
+	nums[2][2] = 1024;
 }
 
 // 绘制游戏窗口
@@ -58,15 +59,35 @@ void drawBoard() {
 			enum color grid_color;
 			switch (nums[i][j])
 			{
-			case 0: grid_color = ZERO;
-			case 2: grid_color = TWO;
-
+			case 0: grid_color = ZERO; break;
+			case 2: grid_color = TWO; break;
+			case 4: grid_color = FOUR; break;
+			case 8: grid_color = EIGHT; break;
+			case 16: grid_color = SIXTE; break;
+			case 32: grid_color = THI_TW; break;
+			case 64: grid_color = SIX_FO; break;
+			case 128: grid_color = OH_TW_EI; break;
+			case 256: grid_color = TH_FI_SI; break;
+			case 512: grid_color = FH_TWEL; break;
+			case 1024: grid_color = OT_TW_FO; break;
+			case 2048: grid_color = TT_FO_EI; break;
 			default:
 				break;
 			}
-			setfillcolor(ZERO); //设置填充颜色
+			setfillcolor(grid_color); //设置填充颜色
+			
 			// 填充无边框矩形，注意二维坐标从左上角开始，函数四个参数分别为左上角xy与右下角xy
-			solidrectangle(grid_position[i][j].x,grid_position[i][j].y,grid_position[i][j].x+GRID_WIDTH,grid_position[i][j].y+GRID_WIDTH);
+			solidrectangle(grid_pos[i][j].x,grid_pos[i][j].y,grid_pos[i][j].x+GRID_WIDTH,grid_pos[i][j].y+GRID_WIDTH);
+			// 设置每一格的文字
+			if (nums[i][j]) {
+				char number[5]; // 储存数字字符串
+				settextstyle(40, 0, "Times New Roman"); // 设置字号与字体
+				setbkmode(TRANSPARENT); // 设置文字背景色为透明
+				sprintf(number, "%d", nums[i][j]); // 将数组中的整数变为字符串存储
+				int text_width = GRID_WIDTH/2 - textwidth(number)/2; // 计算字符宽度
+				int text_height = GRID_WIDTH / 2 - textheight(number) / 2; // 计算字符高度
+				outtextxy(grid_pos[i][j].x + text_width, grid_pos[i][j].y + text_height, number); // 居中显示数字
+			}
 
 		}
 	}
