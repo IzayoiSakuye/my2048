@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <graphics.h> // EasyX图形库头文件
 #include <time.h> // 用于初始化随机数发生器
+#include <conio.h> // 用于键盘操作
 
 // 宏定义窗口尺寸数据
 #define GRID_WIDTH 100 // 格子宽度
@@ -123,9 +124,92 @@ void drawBoard() {
 
 	
 }
+
+// 上移
+void up() {
+	for (int i = 0; i < SIZE; i++) {
+		int tep = 0;
+		for (int j = 1; j < SIZE; j++) {
+			if (nums[j][i] != 0) {
+				if (nums[tep][i] == 0) {
+					nums[tep][i] = nums[j][i];
+					nums[j][i] = 0;
+				}
+				else if (nums[tep][i] == nums[j][i]) {
+					nums[tep][i] += nums[j][i];
+					nums[j][i] = 0;
+				}
+				else {
+					nums[tep + 1][i] = nums[j][i];
+					if (tep + 1 != j) {
+						nums[j][i] = 0;
+					}
+				}
+			}
+			tep++;
+		}
+	}
+	printf("up");
+
+}
+// 下移
+void down() {
+	printf("down");
+}
+// 左移
+void left() {
+	printf("left");
+}
+
+// 右移
+void right() {
+	printf("right");
+}
+// 控制数字移动
+void stdControl() {
+	char key = _getch(); // 获取键盘输入
+	// 根据输入判断操作
+	switch (key)
+	{
+		case 'w':
+		case 'W':
+		case 72:
+			up();
+			
+			break;
+		case 'a':
+		case 'A':
+		case 75:
+			left();
+			
+
+			break;
+		case 's':
+		case 'S':
+		case 80:
+			down();
+			
+
+			break;
+		case 'd':
+		case 'D':
+		case 77:
+			right();
+			
+
+			break;
+	default:
+		break;
+	}
+
+}
 int main(){
 	initWindows();
-	drawBoard();
+	while (1) {
+		drawBoard();
+		stdControl();
+	}
+	
 
 	system("pause"); // 使窗口保持开启
 	return 0;
