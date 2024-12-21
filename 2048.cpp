@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <graphics.h> // EasyX图形库头文件
-
+#include <time.h> // 用于初始化随机数发生器
 
 // 宏定义窗口尺寸数据
 #define GRID_WIDTH 100 // 格子宽度
@@ -34,6 +34,31 @@ struct pos {
 // 记录各格数字
 int nums[SIZE][SIZE];
 
+// 随机产生数字
+int randomNums() {
+	time_t t1; // 用时间作为srand的seed，防止每次随机数都一样
+	srand((unsigned)time(&t1)); // 初始化随机数发生器
+	if (rand() % 8 == 1) return 4;
+	else return 2;
+}
+
+// 把产生的数字放到随机位置
+void randomPos() {
+	while (1) {
+		time_t t2;
+		srand((unsigned)time(&t2));
+		int x = rand() % SIZE;
+		int y = rand() % SIZE;
+
+		if (nums[x][y] == 0) {
+			nums[x][y] = randomNums();
+			break;
+		}
+
+	}
+
+}
+
 // 初始化游戏窗口
 void initWindows() {
 	initgraph(WINDOWS_WIDTH, WINDOWS_HEIGHT, EX_SHOWCONSOLE); // 初始化窗口
@@ -47,8 +72,12 @@ void initWindows() {
 			grid_pos[i][j].y = j * GRID_WIDTH + (j + 1) * INTERVALS;
 		}
 	}
-	nums[2][2] = 1024;
+	
+	// 随机生成两个数字(2或4)
+	randomPos();
+	randomPos();
 }
+
 
 // 绘制游戏窗口
 void drawBoard() {
