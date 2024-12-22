@@ -34,6 +34,8 @@ struct pos {
 }grid_pos[SIZE][SIZE];
 // 记录各格数字
 int nums[SIZE][SIZE];
+// 判断是否可以生成数字
+bool flag = false;
 
 // 随机产生数字
 int randomNums() {
@@ -58,6 +60,12 @@ void randomPos() {
 
 	}
 
+}
+void gameJudge() {
+	if (flag) {
+		randomPos();
+		flag = false;
+	}
 }
 
 // 初始化游戏窗口
@@ -111,6 +119,7 @@ void drawBoard() {
 			// 设置每一格的文字
 			if (nums[i][j]) {
 				char number[5]; // 储存数字字符串
+				if (nums[i][j] == 2 || nums[i][j] == 4) settextcolor(RGB(119, 110, 101));  // 给2和4换一个深色
 				settextstyle(40, 0, "Times New Roman"); // 设置字号与字体
 				setbkmode(TRANSPARENT); // 设置文字背景色为透明
 				sprintf(number, "%d", nums[i][j]); // 将数组中的整数变为字符串存储
@@ -124,47 +133,220 @@ void drawBoard() {
 
 	
 }
-
-// 上移
-void up() {
-	for (int i = 0; i < SIZE; i++) {
-		int tep = 0;
-		for (int j = 1; j < SIZE; j++) {
-			if (nums[j][i] != 0) {
-				if (nums[tep][i] == 0) {
-					nums[tep][i] = nums[j][i];
-					nums[j][i] = 0;
+// 左移
+void left() {
+	for (int j = 0; j < SIZE; j++) {
+		int temp = 0;
+		for (int i = 1; i < SIZE; i++) {
+			if (nums[i][j] != 0) {
+				if (nums[temp][j] == 0) {
+					nums[temp][j] = nums[i][j];
+					nums[i][j] = 0;
+					flag = true;
 				}
-				else if (nums[tep][i] == nums[j][i]) {
-					nums[tep][i] += nums[j][i];
-					nums[j][i] = 0;
+				else if (nums[temp][j] == nums[i][j]) {
+					nums[temp][j] *= 2;
+					nums[i][j] = 0;
+					temp++;
+					flag = true;
 				}
 				else {
-					nums[tep + 1][i] = nums[j][i];
-					if (tep + 1 != j) {
-						nums[j][i] = 0;
+					temp++;
+					if (temp != i) {
+						nums[temp][j] = nums[i][j];
+						nums[i][j] = 0;
+						flag = true;
 					}
 				}
 			}
-			tep++;
 		}
 	}
-	printf("up");
-
-}
-// 下移
-void down() {
-	printf("down");
-}
-// 左移
-void left() {
-	printf("left");
+	printf("left\n");
 }
 
 // 右移
 void right() {
-	printf("right");
+	for (int j = 0; j < SIZE; j++) {
+		int temp = SIZE - 1;
+		for (int i = SIZE - 2; i >= 0; i--) {
+			if (nums[i][j] != 0) {
+				if (nums[temp][j] == 0) {
+					nums[temp][j] = nums[i][j];
+					nums[i][j] = 0;
+					flag = true;
+				}
+				else if (nums[temp][j] == nums[i][j]) {
+					nums[temp][j] *= 2;
+					nums[i][j] = 0;
+					temp--;
+					flag = true;
+				}
+				else {
+					temp--;
+					if (temp != i) {
+						nums[temp][j] = nums[i][j];
+						nums[i][j] = 0;
+						flag = true;
+					}
+				}
+			}
+		}
+	}
+	printf("right\n");
 }
+
+// 上移
+void up() {
+	for (int i = 0; i < SIZE; i++) {
+		int temp = 0;
+		for (int j = 1; j < SIZE; j++) {
+			if (nums[i][j] != 0) {
+				if (nums[i][temp] == 0) {
+					nums[i][temp] = nums[i][j];
+					nums[i][j] = 0;
+					flag = true;
+				}
+				else if (nums[i][temp] == nums[i][j]) {
+					nums[i][temp] *= 2;
+					nums[i][j] = 0;
+					temp++;
+					flag = true;
+				}
+				else {
+					temp++;
+					if (temp != j) {
+						nums[i][temp] = nums[i][j];
+						nums[i][j] = 0;
+						flag = true;
+					}
+				}
+			}
+		}
+	}
+	printf("up\n");
+}
+
+// 下移
+void down() {
+	for (int i = 0; i < SIZE; i++) {
+		int temp = SIZE - 1;
+		for (int j = SIZE - 2; j >= 0; j--) {
+			if (nums[i][j] != 0) {
+				if (nums[i][temp] == 0) {
+					nums[i][temp] = nums[i][j];
+					nums[i][j] = 0;
+					flag = true;
+				}
+				else if (nums[i][temp] == nums[i][j]) {
+					nums[i][temp] *= 2;
+					nums[i][j] = 0;
+					temp--;
+					flag = true;
+				}
+				else {
+					temp--;
+					if (temp != j) {
+						nums[i][temp] = nums[i][j];
+						nums[i][j] = 0;
+						flag = true;
+					}
+				}
+			}
+		}
+	}
+	printf("down\n");
+}
+//// 上移
+//void up() {
+//	for (int i = 0; i < SIZE; i++) {
+//		int tep = 0;
+//		for (int j = 1; j < SIZE; j++) {
+//			if (nums[i][j] != 0) {
+//				if (nums[i][tep] == 0) {
+//					nums[i][tep] = nums[i][j];
+//					nums[i][j] = 0;
+//				}
+//				else if (nums[i][tep] == nums[i][j]) {
+//					nums[tep][j] += nums[i][j];
+//					nums[i][j] = 0;
+//				}
+//				else {
+//					nums[i][tep + 1] = nums[i][j];
+//					if (tep + 1 != j) {
+//						nums[i][j] = 0;
+//					}
+//				}
+//				tep++;
+//				flag = true;
+//			}
+//			
+//		}
+//	}
+//
+//	printf("up");
+//
+//}
+//// 下移
+//void down() {
+//	printf("down");
+//}
+//// 左移
+//void left() {
+//	for (int i = 0; i < SIZE; i++) {
+//		int tep = 0;
+//		for (int j = 1; j < SIZE; j++) {
+//			if (nums[j][i] != 0) {
+//				if (nums[tep][i] == 0) {
+//					nums[tep][i] = nums[j][i];
+//					nums[j][i] = 0;
+//				}
+//				else if (nums[tep][i] == nums[j][i]) {
+//					nums[tep][i] += nums[j][i];
+//					nums[j][i] = 0;
+//				}
+//				else {
+//					nums[tep + 1][i] = nums[j][i];
+//					if (tep + 1 != j) {
+//						nums[j][i] = 0;
+//					}
+//				}
+//				tep++;
+//				flag = true;
+//			}
+//			
+//		}
+//	}
+//	printf("left");
+//}
+//
+//// 右移
+//void right() {
+//	for (int i = 0; i < SIZE; i++) {
+//		int tep = SIZE-1;
+//		for (int j = SIZE - 2; j >=0; j--) {
+//			if (nums[j][i] != 0) {
+//				if (nums[tep][i] == 0) {
+//					nums[tep][i] = nums[j][i];
+//					nums[j][i] = 0;
+//				}
+//				else if (nums[tep][i] == nums[j][i]) {
+//					nums[tep][i] += nums[j][i];
+//					nums[j][i] = 0;
+//				}
+//				else {
+//					nums[tep - 1][i] = nums[j][i];
+//					if (tep + 1 != j) {
+//						nums[j][i] = 0;
+//					}
+//				}
+//				tep--;
+//				flag = true;
+//			}
+//			
+//		}
+//	}
+//	printf("right");
+//}
 // 控制数字移动
 void stdControl() {
 	char key = _getch(); // 获取键盘输入
@@ -208,6 +390,7 @@ int main(){
 	while (1) {
 		drawBoard();
 		stdControl();
+		gameJudge();
 	}
 	
 
