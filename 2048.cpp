@@ -90,6 +90,10 @@ void initWindows() {
 
 // 绘制游戏窗口
 void drawBoard() {
+	// 双缓冲处理画面
+	BeginBatchDraw(); // 开始批量绘图
+	cleardevice(); // 清屏
+
 	// 二维数组遍历填充格子颜色,初始化为没有数字的颜色
 	for (int i = 0; i < SIZE; i++) {
 		for (int j = 0; j < SIZE; j++) {
@@ -130,6 +134,7 @@ void drawBoard() {
 
 		}
 	}
+	EndBatchDraw(); // 结束批量绘图
 
 	
 }
@@ -258,48 +263,29 @@ void down() {
 }
 // 控制数字移动
 void stdControl() {
-	char key = _getch(); // 获取键盘输入
-	// 根据输入判断操作
-	switch (key)
-	{
-		case 'w':
-		case 'W':
-		case 72:
-			up();
-			
-			break;
-		case 'a':
-		case 'A':
-		case 75:
-			left();
-			
-
-			break;
-		case 's':
-		case 'S':
-		case 80:
-			down();
-			
-
-			break;
-		case 'd':
-		case 'D':
-		case 77:
-			right();
-			
-
-			break;
-	default:
-		break;
+	// 从窗口中读取按键信息(wasd或WASD或方向键)
+	if (GetAsyncKeyState(VK_UP) & 0x8000 || GetAsyncKeyState('w') || GetAsyncKeyState('W')) {
+		up();
 	}
-
+	else if (GetAsyncKeyState(VK_LEFT) & 0x8000 || GetAsyncKeyState('a') || GetAsyncKeyState('A')) {
+		left();
+	}
+	else if (GetAsyncKeyState(VK_DOWN) & 0x8000 || GetAsyncKeyState('s') || GetAsyncKeyState('S')) {
+		down();
+	}
+	else if (GetAsyncKeyState(VK_RIGHT) & 0x8000 || GetAsyncKeyState('d') || GetAsyncKeyState('D')) {
+		right();
+	}
+	Sleep(100); // 防止过多的输入误触
 }
+
 int main(){
 	initWindows();
 	while (1) {
 		drawBoard();
 		stdControl();
 		gameJudge();
+		Sleep(10);
 	}
 	
 
