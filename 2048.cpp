@@ -61,11 +61,51 @@ void randomPos() {
 	}
 
 }
-void gameJudge() {
+
+// 判断是否可以产生数字，若可以变产生数字
+void numSummon() {
 	if (flag) {
 		randomPos();
 		flag = false;
 	}
+}
+
+// 判断是否胜利
+bool isGameWin() {
+	for (int i = 0; i < SIZE; i++) {
+		for (int j = 0; j < SIZE; j++) {
+			if (nums[i][j] == 2048) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+// 判断是否结束
+bool isGameOver() {
+	for (int i = 1; i < SIZE-1; i++) {
+		for (int j = 1; j < SIZE-1; j++) {
+			// 如果有空格子，游戏未结束
+			if (nums[i][j] == 0) {
+				return false;
+			}
+			// 检查当前格子与四个方向是否相等
+			if (nums[i][j] == nums[i][j + 1]) {
+				return false;
+			}
+			if (nums[i][j] == nums[i + 1][j]) {
+				return false;
+			}
+			if (nums[i][j] == nums[i - 1][j]) {
+				return false;
+			}
+			if (nums[i][j] == nums[i][j - 1]) {
+				return false;
+			}
+		}
+	}
+	return true;
 }
 
 // 初始化游戏窗口
@@ -263,20 +303,25 @@ void down() {
 }
 // 控制数字移动
 void stdControl() {
-	// 从窗口中读取按键信息(wasd或WASD或方向键)
-	if (GetAsyncKeyState(VK_UP) & 0x8000 || GetAsyncKeyState('w') || GetAsyncKeyState('W')) {
-		up();
+	ExMessage msg;
+	while (peekmessage(&msg, EX_KEY)) {
+		// 从窗口中读取按键信息(wasd或WASD或方向键)
+		if (GetAsyncKeyState(VK_UP) & 0x8000 || GetAsyncKeyState('w') || GetAsyncKeyState('W')) {
+			up();
+		}
+		else if (GetAsyncKeyState(VK_LEFT) & 0x8000 || GetAsyncKeyState('a') || GetAsyncKeyState('A')) {
+			left();
+		}
+		else if (GetAsyncKeyState(VK_DOWN) & 0x8000 || GetAsyncKeyState('s') || GetAsyncKeyState('S')) {
+			down();
+		}
+		else if (GetAsyncKeyState(VK_RIGHT) & 0x8000 || GetAsyncKeyState('d') || GetAsyncKeyState('D')) {
+			right();
+		}
+
 	}
-	else if (GetAsyncKeyState(VK_LEFT) & 0x8000 || GetAsyncKeyState('a') || GetAsyncKeyState('A')) {
-		left();
-	}
-	else if (GetAsyncKeyState(VK_DOWN) & 0x8000 || GetAsyncKeyState('s') || GetAsyncKeyState('S')) {
-		down();
-	}
-	else if (GetAsyncKeyState(VK_RIGHT) & 0x8000 || GetAsyncKeyState('d') || GetAsyncKeyState('D')) {
-		right();
-	}
-	Sleep(100); // 防止过多的输入误触
+	
+	//Sleep(100); // 防止过多的输入误触
 }
 
 int main(){
@@ -284,8 +329,14 @@ int main(){
 	while (1) {
 		drawBoard();
 		stdControl();
-		gameJudge();
-		Sleep(10);
+		numSummon();
+		if (isGameWin()) {
+
+		}
+		else if (isGameOver()) {
+
+		}
+		//Sleep(10);
 	}
 	
 
