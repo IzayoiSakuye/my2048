@@ -9,10 +9,14 @@
 #define SIZE 4 // 格子数量
 #define WINDOWS_WIDTH (GRID_WIDTH*SIZE+INTERVALS*(SIZE+1)) // 窗口宽
 #define WINDOWS_HEIGHT (GRID_WIDTH*SIZE+INTERVALS*(SIZE+1))+120 //窗口高
+// 宏定义结果显示框尺寸
+#define RECWIDTH 400
+#define RECHEIGHT 400
 
 // 用枚举类型设置各种数字以及背景颜色
 enum color {
-	BK = RGB(255, 224, 172), // 背景色
+	REC = RGB(187, 173, 160), // 矩形色
+	BK = RGB(255,224,172), // 背景色
 	ZERO = RGB(205,193,180), // 没有数字
 	TWO = RGB(238,228,218), // 2
 	FOUR = RGB(237,224,200), // 4
@@ -34,6 +38,8 @@ struct pos {
 }grid_pos[SIZE][SIZE];
 // 记录各格数字
 int nums[SIZE][SIZE];
+// 临时记录分数
+int score;
 // 判断是否可以生成数字
 bool flag = false;
 
@@ -41,8 +47,8 @@ bool flag = false;
 int randomNums() {
 	time_t t1; // 用时间作为srand的seed，防止每次随机数都一样
 	srand((unsigned)time(&t1)); // 初始化随机数发生器
-	if (rand() % 8 == 1) return 4;
-	else return 2;
+	if (rand() % 8 == 1) return 4; // 20%的概率产生4
+	else return 2; // 80%的概率产生2
 }
 
 // 把产生的数字放到随机位置
@@ -84,23 +90,23 @@ bool isGameWin() {
 
 // 判断是否结束
 bool isGameOver() {
-	for (int i = 1; i < SIZE-1; i++) {
-		for (int j = 1; j < SIZE-1; j++) {
+	for (int i = 0; i < SIZE; i++) {
+		for (int j = 0; j < SIZE; j++) {
 			// 如果有空格子，游戏未结束
 			if (nums[i][j] == 0) {
 				return false;
 			}
 			// 检查当前格子与四个方向是否相等
-			if (nums[i][j] == nums[i][j + 1]) {
+			if (j + 1 < SIZE && nums[i][j] == nums[i][j + 1]) {
 				return false;
 			}
-			if (nums[i][j] == nums[i + 1][j]) {
+			if (i + 1 < SIZE && nums[i][j] == nums[i + 1][j]) {
 				return false;
 			}
-			if (nums[i][j] == nums[i - 1][j]) {
+			if (i - 1 > -1 && nums[i][j] == nums[i - 1][j]) {
 				return false;
 			}
-			if (nums[i][j] == nums[i][j - 1]) {
+			if (j - 1 > -1 && nums[i][j] == nums[i][j - 1]) {
 				return false;
 			}
 		}
@@ -125,7 +131,10 @@ void initWindows() {
 	// 随机生成两个数字(2或4)
 	randomPos();
 	randomPos();
-	nums[2][2] = 1024, nums[2][3] = 1024;
+	//nums[2][2] = 1024, nums[2][3] = 1024;
+
+	// 分数清零
+	score = 0; 
 }
 
 
@@ -164,6 +173,7 @@ void drawBoard() {
 			// 设置每一格的文字
 			if (nums[i][j]) {
 				char number[5]; // 储存数字字符串
+				settextcolor(RGB(255, 255, 255));
 				if (nums[i][j] == 2 || nums[i][j] == 4) settextcolor(RGB(119, 110, 101));  // 给2和4换一个深色
 				settextstyle(40, 0, "Times New Roman"); // 设置字号与字体
 				setbkmode(TRANSPARENT); // 设置文字背景色为透明
@@ -175,9 +185,24 @@ void drawBoard() {
 
 		}
 	}
-	EndBatchDraw(); // 结束批量绘图
 
+	// 设置分数显示
+	setfillcolor(REC);
+	solidrectangle(WINDOWS_WIDTH / 2 + 50, WINDOWS_HEIGHT - 120, WINDOWS_WIDTH / 2 + 200, WINDOWS_HEIGHT - 30);
+	settextcolor(RGB(0, 0, 0));
+	settextstyle(20, 0, "黑体"); 
+	outtextxy(WINDOWS_WIDTH / 2 + 50+(150-textwidth("HighestScores")) / 2, WINDOWS_HEIGHT - 120 + textheight("HighestScores") / 2, "HighestScores");
 	
+	solidrectangle(WINDOWS_WIDTH / 2 -200, WINDOWS_HEIGHT - 120, WINDOWS_WIDTH / 2 - 50, WINDOWS_HEIGHT - 30);
+	settextcolor(RGB(0, 0, 0));
+	settextstyle(30, 0, "黑体");
+	outtextxy(WINDOWS_WIDTH / 2 - 200 + (150 - textwidth("Scores")) / 2, WINDOWS_HEIGHT - 125 + textheight("Scores") / 2, "Scores");
+	char score_c[10000];
+	sprintf(score_c, "%d", score);
+	settextcolor(RGB(255,255,255));
+	settextstyle(30, 0, "黑体");
+	outtextxy(WINDOWS_WIDTH / 2 - 200 + (150 - textwidth(score_c)) / 2, WINDOWS_HEIGHT - 90 + textheight(score_c) / 2, score_c);
+	EndBatchDraw(); // 结束批量绘图
 }
 // 左移
 void left() {
@@ -191,6 +216,7 @@ void left() {
 					flag = true;
 				}
 				else if (nums[temp][j] == nums[i][j]) {
+					score += nums[temp][j] * 2;
 					nums[temp][j] *= 2;
 					nums[i][j] = 0;
 					temp++;
@@ -222,6 +248,7 @@ void right() {
 					flag = true;
 				}
 				else if (nums[temp][j] == nums[i][j]) {
+					score += nums[temp][j] * 2;
 					nums[temp][j] *= 2;
 					nums[i][j] = 0;
 					temp--;
@@ -253,6 +280,7 @@ void up() {
 					flag = true;
 				}
 				else if (nums[i][temp] == nums[i][j]) {
+					score += nums[i][temp] * 2;
 					nums[i][temp] *= 2;
 					nums[i][j] = 0;
 					temp++;
@@ -284,6 +312,7 @@ void down() {
 					flag = true;
 				}
 				else if (nums[i][temp] == nums[i][j]) {
+					score += nums[i][temp] * 2;
 					nums[i][temp] *= 2;
 					nums[i][j] = 0;
 					temp--;
@@ -327,14 +356,37 @@ void stdControl() {
 
 // 游戏结果展示
 void showResult(const char* message) {
+	// 创建矩形窗口
+	setfillcolor(RGB(0,0,0)); //设置填充颜色
+	int x1 = (WINDOWS_WIDTH - RECWIDTH) / 2;
+	int y1 = (WINDOWS_HEIGHT - RECHEIGHT) / 2-50;
+	int x2 = x1 + RECWIDTH;
+	int y2 = y1 + RECHEIGHT-50;
+	solidrectangle(x1-5,y1-5,x2+5,y2+5); // 填充显示结果矩形
+	setfillcolor(BK);
+	solidrectangle(x1, y1, x2, y2);
+
+	// 输出结束信息
 	settextcolor(RGB(255, 0, 0)); // 设置颜色
 	settextstyle(50, 0, "Times New Roman"); // 设置字号与字体
 	setbkmode(TRANSPARENT); // 设置文字背景色为透明
-	outtextxy(WINDOWS_WIDTH / 2 - textwidth(message) / 2, WINDOWS_HEIGHT / 2 - textheight(message) / 2 - 40, message);
+	outtextxy(x1 + (RECWIDTH - textwidth(message))/2, y1 - 100 + RECHEIGHT/2- textheight(message), message);
 	settextcolor(RGB(0, 0, 0)); // 设置颜色
 	settextstyle(25, 0, "Times New Roman"); // 设置字号与字体
-	const char TIP[100] = "Press \"R\" or \"r\" to restart, press \"Esc\" to quit.";
-	outtextxy(WINDOWS_WIDTH / 2 - textwidth(TIP) / 2, WINDOWS_HEIGHT / 2 -textheight(TIP)/2, TIP);
+	const char TIP1[100] = "Press \"R\" or \"r\" to restart.";
+	outtextxy(x1 + (RECWIDTH - textwidth(TIP1)) / 2, y1 - 50 + RECHEIGHT / 2 - textheight(TIP1), TIP1);
+	const char TIP2[100] = "Press \"Esc\" to quit.";
+	outtextxy(x1 + (RECWIDTH - textwidth(TIP2)) / 2, y1 - 20 + RECHEIGHT / 2 - textheight(TIP2), TIP2);
+
+	// 输出分数
+	settextstyle(30, 0, "Times New Roman"); // 设置字号与字体
+	char score1[100];
+	sprintf(score1, "Scores: %d", score);
+	outtextxy(x1 + (RECWIDTH - textwidth(score1)) / 2, y1 + 30  + RECHEIGHT / 2 - textheight(score1), score1);
+
+	char score2[100];
+	sprintf(score2, "Highest Scores: %d", score);
+	outtextxy(x1 + (RECWIDTH - textwidth(score2)) / 2, y1 + 60 + RECHEIGHT / 2 - textheight(score2), score2);
 }
 
 // 游戏结束后的操作判断

@@ -5,6 +5,9 @@
     {
       "AbsoluteMoniker": "D:0:0:{A181B9D3-6A54-425B-811A-22C376886DB6}|my2048.vcxproj|E:\\CS\\repository\\my2048\\2048.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{A181B9D3-6A54-425B-811A-22C376886DB6}|my2048.vcxproj|solutionrelative:2048.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A181B9D3-6A54-425B-811A-22C376886DB6}|my2048.vcxproj|C:\\PROGRAM FILES (X86)\\WINDOWS KITS\\10\\INCLUDE\\10.0.22621.0\\SHARED\\APISET.H||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     }
   ],
   "DocumentGroupContainers": [
@@ -14,7 +17,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Bookmark",
@@ -26,13 +29,24 @@
             },
             {
               "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "apiset.h",
+              "DocumentMoniker": "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\shared\\apiset.h",
+              "ToolTip": "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\shared\\apiset.h",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2024-12-24T12:08:15.064Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 0,
               "Title": "2048.cpp",
               "DocumentMoniker": "E:\\CS\\repository\\my2048\\2048.cpp",
               "RelativeDocumentMoniker": "2048.cpp",
               "ToolTip": "E:\\CS\\repository\\my2048\\2048.cpp*",
               "RelativeToolTip": "2048.cpp*",
-              "ViewState": "AgIAADkBAAAAAAAAAAAQwEgBAAAmAAAAAAAAAA==",
+              "ViewState": "AgIAAKwAAAAAAAAAAAAAAMAAAAAQAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2024-12-16T12:48:21.411Z",
               "EditorCaption": ""
