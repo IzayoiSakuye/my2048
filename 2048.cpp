@@ -125,6 +125,7 @@ void initWindows() {
 	// 随机生成两个数字(2或4)
 	randomPos();
 	randomPos();
+	nums[2][2] = 1024, nums[2][3] = 1024;
 }
 
 
@@ -318,28 +319,62 @@ void stdControl() {
 		else if (GetAsyncKeyState(VK_RIGHT) & 0x8000 || GetAsyncKeyState('d') || GetAsyncKeyState('D')) {
 			right();
 		}
-
 	}
+	flushmessage(EX_KEY);
 	
 	//Sleep(100); // 防止过多的输入误触
 }
 
+// 游戏结果展示
+void showResult(const char* message) {
+	settextcolor(RGB(255, 0, 0)); // 设置颜色
+	settextstyle(50, 0, "Times New Roman"); // 设置字号与字体
+	setbkmode(TRANSPARENT); // 设置文字背景色为透明
+	outtextxy(WINDOWS_WIDTH / 2 - textwidth(message) / 2, WINDOWS_HEIGHT / 2 - textheight(message) / 2 - 40, message);
+	settextcolor(RGB(0, 0, 0)); // 设置颜色
+	settextstyle(25, 0, "Times New Roman"); // 设置字号与字体
+	const char TIP[100] = "Press \"R\" or \"r\" to restart, press \"Esc\" to quit.";
+	outtextxy(WINDOWS_WIDTH / 2 - textwidth(TIP) / 2, WINDOWS_HEIGHT / 2 -textheight(TIP)/2, TIP);
+}
+
+// 游戏结束后的操作判断
+bool overInput() {
+	ExMessage msg;
+	while (peekmessage(&msg, EX_KEY)) {
+		if (GetAsyncKeyState('R') || GetAsyncKeyState('r')) {
+			closegraph();
+			initWindows();
+			return true;
+		}
+		else if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {
+			closegraph();
+			exit(0);
+		}
+	}
+	flushmessage(EX_KEY);
+	return false;
+}
+
 int main(){
+
 	initWindows();
 	while (1) {
 		drawBoard();
-		stdControl();
-		numSummon();
 		if (isGameWin()) {
-
+			showResult("You Win!");
+			while (!overInput()); // 等待用户操作
 		}
 		else if (isGameOver()) {
-
+			showResult("Game Over");
+			while (!overInput()); // 等待用户操作
 		}
-		//Sleep(10);
+		else {
+			stdControl();
+			numSummon();
+		}
 	}
 	
 
-	system("pause"); // 使窗口保持开启
+	//system("pause"); // 使窗口保持开启
 	return 0;
 }

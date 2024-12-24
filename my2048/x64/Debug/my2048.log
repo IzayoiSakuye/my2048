@@ -1,9 +1,9 @@
 ﻿  2048.cpp
-E:\CS\repository\my2048\2048.cpp(162,97): warning C4244: “参数”: 从“__int64”转换到“int”，可能丢失数据
-E:\CS\repository\my2048\2048.cpp(162,69): warning C4244: “参数”: 从“__int64”转换到“int”，可能丢失数据
-E:\CS\repository\my2048\2048.cpp(162,50): warning C4244: “参数”: 从“__int64”转换到“int”，可能丢失数据
-E:\CS\repository\my2048\2048.cpp(162,33): warning C4244: “参数”: 从“__int64”转换到“int”，可能丢失数据
-E:\CS\repository\my2048\2048.cpp(172,63): warning C4244: “参数”: 从“__int64”转换到“int”，可能丢失数据
-E:\CS\repository\my2048\2048.cpp(172,32): warning C4244: “参数”: 从“__int64”转换到“int”，可能丢失数据
-E:\CS\repository\my2048\2048.cpp(169,5): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\CS\repository\my2048\2048.cpp(163,97): warning C4244: “参数”: 从“__int64”转换到“int”，可能丢失数据
+E:\CS\repository\my2048\2048.cpp(163,69): warning C4244: “参数”: 从“__int64”转换到“int”，可能丢失数据
+E:\CS\repository\my2048\2048.cpp(163,50): warning C4244: “参数”: 从“__int64”转换到“int”，可能丢失数据
+E:\CS\repository\my2048\2048.cpp(163,33): warning C4244: “参数”: 从“__int64”转换到“int”，可能丢失数据
+E:\CS\repository\my2048\2048.cpp(173,63): warning C4244: “参数”: 从“__int64”转换到“int”，可能丢失数据
+E:\CS\repository\my2048\2048.cpp(173,32): warning C4244: “参数”: 从“__int64”转换到“int”，可能丢失数据
+E:\CS\repository\my2048\2048.cpp(170,5): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
   my2048.vcxproj -> E:\CS\repository\my2048\x64\Debug\my2048.exe
