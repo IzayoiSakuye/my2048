@@ -4,12 +4,15 @@
 #include <conio.h> // 用于键盘操作
 #include <string.h> // 用于与文件数据比较
 
+// 布尔表达
+#define true 1
+#define false 0
 // 宏定义窗口尺寸数据
 #define GRID_WIDTH 100 // 格子宽度
 #define INTERVALS 15 // 间隔大小
 #define SIZE 4 // 格子数量
 #define WINDOWS_WIDTH (GRID_WIDTH*SIZE+INTERVALS*(SIZE+1)) // 窗口宽
-#define WINDOWS_HEIGHT (GRID_WIDTH*SIZE+INTERVALS*(SIZE+1))+120 //窗口高
+#define WINDOWS_HEIGHT (GRID_WIDTH*SIZE+INTERVALS*(SIZE+1))+200 //窗口高
 // 宏定义结果显示框尺寸
 #define RECWIDTH 400
 #define RECHEIGHT 400
@@ -39,12 +42,14 @@ struct pos {
 }grid_pos[SIZE][SIZE];
 FILE *score_f;
 FILE *history;
+FILE *gamestate;
 // 记录各格数字
 int nums[SIZE][SIZE];
 // 临时记录分数
 int score;
 // 判断是否可以生成数字
-bool flag = false;
+int flag = false;
+int flaghistory = false;
 
 // 随机产生数字
 int randomNums() {
@@ -99,7 +104,7 @@ int historyScore() {
 
 }
 // 判断是否胜利
-bool isGameWin() {
+int isGameWin() {
 	for (int i = 0; i < SIZE; i++) {
 		for (int j = 0; j < SIZE; j++) {
 			if (nums[i][j] == 2048) {
@@ -111,7 +116,7 @@ bool isGameWin() {
 }
 
 // 判断是否结束
-bool isGameOver() {
+int isGameOver() {
 	for (int i = 0; i < SIZE; i++) {
 		for (int j = 0; j < SIZE; j++) {
 			// 如果有空格子，游戏未结束
@@ -136,6 +141,21 @@ bool isGameOver() {
 	return true;
 }
 
+// 存储游戏记录
+void saveGameState() {
+	gamestate = fopen("game_state.txt", "w");
+	fprintf(gamestate, "%d\n", flaghistory);// 保存历史记录状态
+	fprintf(gamestate, "%d\n", score);// 保存分数
+	// 保存棋盘上的数字
+	for (int i = 0; i < SIZE; i++) {
+		for (int j = 0; j < SIZE; j++) {
+			fprintf(gamestate, "%d ", nums[i][j]);
+		}
+		fprintf(gamestate, "\n");
+	}
+	fclose(gamestate);
+}
+
 // 初始化游戏窗口
 void initWindows() {
 	initgraph(WINDOWS_WIDTH, WINDOWS_HEIGHT, EX_SHOWCONSOLE); // 初始化窗口
@@ -157,6 +177,77 @@ void initWindows() {
 
 	// 分数清零
 	score = 0; 
+}
+void loadSaveData() {
+	int state = 0;
+	gamestate = fopen("game_state.txt", "r");
+	fscanf(gamestate, "%d\n", &state); // 读取第一行的历史记录标志
+	fclose(gamestate);
+
+	// 如果有历史记录
+	if (state == 1) {
+		// 弹出 GUI 询问用户是否要加载历史记录
+		setfillcolor(RGB(0, 0, 0)); // 设置填充颜色
+		int x1 = (WINDOWS_WIDTH - RECWIDTH) / 2;
+		int y1 = (WINDOWS_HEIGHT - RECHEIGHT) / 2 ;
+		int x2 = x1 + RECWIDTH;
+		int y2 = y1 + RECHEIGHT - 100;
+		solidrectangle(x1 - 5, y1 - 5, x2 + 5, y2 + 5); // 填充显示结果矩形
+		setfillcolor(BK);
+		solidrectangle(x1, y1, x2, y2);
+
+		// 提示信息
+		settextcolor(RGB(255, 0, 0)); // 设置颜色
+		settextstyle(35, 0, "黑体");
+		setbkmode(TRANSPARENT); // 设置文字背景色为透明
+		const char* message = "是否从上次的进度开始？";
+		outtextxy(x1 + (RECWIDTH - textwidth(message)) / 2, y1 - 100 + RECHEIGHT / 2 - textheight(message), message);
+
+		// 提示按键
+		settextcolor(RGB(0, 0, 0)); // 设置颜色
+		settextstyle(25, 0, "黑体");
+		const char* TIP1 = "按\"Y\"或\"y\"读取进度";
+		const char* TIP2 = "按\"N\"或\"n\"重新开始";
+		outtextxy(x1 + (RECWIDTH - textwidth(TIP1)) / 2, y1  + RECHEIGHT / 2 - textheight(TIP1), TIP1);
+		outtextxy(x1 + (RECWIDTH - textwidth(TIP2)) / 2, y1 +50 + RECHEIGHT / 2 - textheight(TIP2), TIP2);
+
+		// 等待用户输入
+		ExMessage msg;
+		while (1) {
+			if (peekmessage(&msg, EX_KEY)) {
+				// 按 'Y' 键表示加载历史记录
+				if (GetAsyncKeyState('Y') || GetAsyncKeyState('y')) {
+					gamestate = fopen("game_state.txt", "r");
+					int state = 0;
+					fscanf(gamestate, "%d\n", &state);
+
+					// 读取分数
+					fscanf(gamestate, "%d\n", &score);
+
+					// 读取棋盘数据
+					for (int i = 0; i < SIZE; i++) {
+						for (int j = 0; j < SIZE; j++) {
+							fscanf(gamestate, "%d ", &nums[i][j]);
+						}
+					}
+					fclose(gamestate);
+
+					// 恢复历史状态
+					flaghistory = state;
+					break;
+				}
+				// 按 'N' 键表示不加载，开始新游戏
+				else if (GetAsyncKeyState('N') || GetAsyncKeyState('n')) {
+					break;
+				}
+			}
+			flushmessage(EX_KEY);
+		}
+	}
+	else {
+		return; // 不需要加载进度 直接重新开始
+	}
+	return;
 }
 
 
@@ -210,26 +301,29 @@ void drawBoard() {
 	
 	// 设置最高分数显示
 	setfillcolor(REC);
-	solidrectangle(WINDOWS_WIDTH / 2 + 50, WINDOWS_HEIGHT - 120, WINDOWS_WIDTH / 2 + 200, WINDOWS_HEIGHT - 30);
+	solidrectangle(WINDOWS_WIDTH / 2 + 50, WINDOWS_HEIGHT - 200, WINDOWS_WIDTH / 2 + 200, WINDOWS_HEIGHT - 120);
 	settextcolor(RGB(0, 0, 0));
 	settextstyle(20, 0, "黑体");
-	outtextxy(WINDOWS_WIDTH / 2 + 50+(150-textwidth("HighestScores")) / 2, WINDOWS_HEIGHT - 120 + textheight("HighestScores") / 2, "HighestScores");
+	outtextxy(WINDOWS_WIDTH / 2 + 50+(150-textwidth("HighestScores")) / 2, WINDOWS_HEIGHT - 200 + textheight("HighestScores") / 2, "HighestScores");
 	char score_h[100];
 	if (historyScore() > score) sprintf(score_h, "%d", historyScore());
 	else sprintf(score_h, "%d", score);
 	settextcolor(RGB(0, 0, 0));
 	settextstyle(30, 0, "黑体");
-	outtextxy(WINDOWS_WIDTH / 2 + 50 + (150 - textwidth(score_h)) / 2, WINDOWS_HEIGHT - 90 + textheight(score_h) / 2, score_h);
+	outtextxy(WINDOWS_WIDTH / 2 + 50 + (150 - textwidth(score_h)) / 2, WINDOWS_HEIGHT - 170 + textheight(score_h) / 2, score_h);
 
 	// 设置当前分数显示
 	char score_c[100];
 	sprintf(score_c, "%d", score);
-	solidrectangle(WINDOWS_WIDTH / 2 -200, WINDOWS_HEIGHT - 120, WINDOWS_WIDTH / 2 - 50, WINDOWS_HEIGHT - 30);
+	solidrectangle(WINDOWS_WIDTH / 2 -200, WINDOWS_HEIGHT - 200, WINDOWS_WIDTH / 2 - 50, WINDOWS_HEIGHT - 120);
 	settextcolor(RGB(0, 0, 0));
 	settextstyle(30, 0, "黑体");
-	outtextxy(WINDOWS_WIDTH / 2 - 200 + (150 - textwidth("Scores")) / 2, WINDOWS_HEIGHT - 125 + textheight("Scores") / 2, "Scores");
-	outtextxy(WINDOWS_WIDTH / 2 - 200 + (150 - textwidth(score_c)) / 2, WINDOWS_HEIGHT - 90 + textheight(score_c) / 2, score_c);
+	outtextxy(WINDOWS_WIDTH / 2 - 200 + (150 - textwidth("Scores")) / 2, WINDOWS_HEIGHT - 210 + textheight("Scores") / 2, "Scores");
+	outtextxy(WINDOWS_WIDTH / 2 - 200 + (150 - textwidth(score_c)) / 2, WINDOWS_HEIGHT - 170 + textheight(score_c) / 2, score_c);
 	
+	// 其他提示文字
+	const char TIPE[30] = "Press \"Esc\" to quit game.";
+	outtextxy((WINDOWS_WIDTH-textwidth(TIPE)) / 2, WINDOWS_HEIGHT -120 + textheight(TIPE) / 2, TIPE);
 	EndBatchDraw(); // 结束批量绘图
 }
 // 左移
@@ -363,7 +457,7 @@ void down() {
 void stdControl() {
 	ExMessage msg;
 	while (peekmessage(&msg, EX_KEY)) {
-		// 从窗口中读取按键信息(wasd或WASD或方向键)
+		// 从窗口中读取按键信息(wasd或WASD或方向键或退出)
 		if (GetAsyncKeyState(VK_UP) & 0x8000 || GetAsyncKeyState('w') || GetAsyncKeyState('W')) {
 			up();
 		}
@@ -375,6 +469,11 @@ void stdControl() {
 		}
 		else if (GetAsyncKeyState(VK_RIGHT) & 0x8000 || GetAsyncKeyState('d') || GetAsyncKeyState('D')) {
 			right();
+		}
+		else if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {
+			flaghistory = true;
+			saveGameState();
+			exit(0);
 		}
 	}
 	flushmessage(EX_KEY);
@@ -422,8 +521,8 @@ void showResult(const char* message) {
 }
 
 // 游戏结束后的操作判断
-bool overInput() {
-	
+int overInput() {
+	flaghistory = false;
 	ExMessage msg;
 	while (peekmessage(&msg, EX_KEY)) {
 		if (GetAsyncKeyState('R') || GetAsyncKeyState('r')) {
@@ -443,6 +542,7 @@ bool overInput() {
 int main(){
 	
 	initWindows();
+	loadSaveData();
 	while (1) {
 		drawBoard();
 		if (isGameWin()) {
@@ -462,6 +562,7 @@ int main(){
 				fprintf(score_f, "%d", score); // 写入新的最高分
 				fclose(score_f);
 			}
+			saveGameState();
 		}
 	}
 	
