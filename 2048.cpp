@@ -2,6 +2,7 @@
 #include <graphics.h> // EasyX图形库头文件
 #include <time.h> // 用于初始化随机数发生器
 #include <conio.h> // 用于键盘操作
+#include <string.h> // 用于与文件数据比较
 
 // 宏定义窗口尺寸数据
 #define GRID_WIDTH 100 // 格子宽度
@@ -36,6 +37,8 @@ struct pos {
 	long long x;
 	long long y;
 }grid_pos[SIZE][SIZE];
+FILE *score_f;
+FILE *history;
 // 记录各格数字
 int nums[SIZE][SIZE];
 // 临时记录分数
@@ -76,6 +79,25 @@ void numSummon() {
 	}
 }
 
+// 获取历史分数
+int historyScore() {
+	int h_score=0;
+	score_f = fopen("score.txt", "r");
+	if (score_f) {
+		if (fscanf(score_f, "%d", &h_score) != 1) {
+			h_score = 0; // 如果读取失败，默认分数为0
+		}
+		else fscanf(score_f, "%d", &h_score); // 读取分数
+		fclose(score_f);
+	}
+	else {
+		score_f = fopen("score.txt", "w");
+		fprintf(score_f, "0"); // 初始化文件
+		fclose(score_f);
+	}
+	return h_score;
+
+}
 // 判断是否胜利
 bool isGameWin() {
 	for (int i = 0; i < SIZE; i++) {
@@ -131,7 +153,7 @@ void initWindows() {
 	// 随机生成两个数字(2或4)
 	randomPos();
 	randomPos();
-	//nums[2][2] = 1024, nums[2][3] = 1024;
+	nums[2][2] = 1024, nums[2][3] = 1024;
 
 	// 分数清零
 	score = 0; 
@@ -185,23 +207,29 @@ void drawBoard() {
 
 		}
 	}
-
-	// 设置分数显示
+	
+	// 设置最高分数显示
 	setfillcolor(REC);
 	solidrectangle(WINDOWS_WIDTH / 2 + 50, WINDOWS_HEIGHT - 120, WINDOWS_WIDTH / 2 + 200, WINDOWS_HEIGHT - 30);
 	settextcolor(RGB(0, 0, 0));
-	settextstyle(20, 0, "黑体"); 
+	settextstyle(20, 0, "黑体");
 	outtextxy(WINDOWS_WIDTH / 2 + 50+(150-textwidth("HighestScores")) / 2, WINDOWS_HEIGHT - 120 + textheight("HighestScores") / 2, "HighestScores");
-	
+	char score_h[100];
+	if (historyScore() > score) sprintf(score_h, "%d", historyScore());
+	else sprintf(score_h, "%d", score);
+	settextcolor(RGB(0, 0, 0));
+	settextstyle(30, 0, "黑体");
+	outtextxy(WINDOWS_WIDTH / 2 + 50 + (150 - textwidth(score_h)) / 2, WINDOWS_HEIGHT - 90 + textheight(score_h) / 2, score_h);
+
+	// 设置当前分数显示
+	char score_c[100];
+	sprintf(score_c, "%d", score);
 	solidrectangle(WINDOWS_WIDTH / 2 -200, WINDOWS_HEIGHT - 120, WINDOWS_WIDTH / 2 - 50, WINDOWS_HEIGHT - 30);
 	settextcolor(RGB(0, 0, 0));
 	settextstyle(30, 0, "黑体");
 	outtextxy(WINDOWS_WIDTH / 2 - 200 + (150 - textwidth("Scores")) / 2, WINDOWS_HEIGHT - 125 + textheight("Scores") / 2, "Scores");
-	char score_c[10000];
-	sprintf(score_c, "%d", score);
-	settextcolor(RGB(255,255,255));
-	settextstyle(30, 0, "黑体");
 	outtextxy(WINDOWS_WIDTH / 2 - 200 + (150 - textwidth(score_c)) / 2, WINDOWS_HEIGHT - 90 + textheight(score_c) / 2, score_c);
+	
 	EndBatchDraw(); // 结束批量绘图
 }
 // 左移
@@ -366,6 +394,7 @@ void showResult(const char* message) {
 	setfillcolor(BK);
 	solidrectangle(x1, y1, x2, y2);
 
+
 	// 输出结束信息
 	settextcolor(RGB(255, 0, 0)); // 设置颜色
 	settextstyle(50, 0, "Times New Roman"); // 设置字号与字体
@@ -384,13 +413,17 @@ void showResult(const char* message) {
 	sprintf(score1, "Scores: %d", score);
 	outtextxy(x1 + (RECWIDTH - textwidth(score1)) / 2, y1 + 30  + RECHEIGHT / 2 - textheight(score1), score1);
 
-	char score2[100];
-	sprintf(score2, "Highest Scores: %d", score);
-	outtextxy(x1 + (RECWIDTH - textwidth(score2)) / 2, y1 + 60 + RECHEIGHT / 2 - textheight(score2), score2);
+	char score_c[20];
+	sprintf(score_c, "Highest Scores:%d", historyScore());
+	//sprintf(score2, "Highest Scores: %d", historyScore());
+	outtextxy(x1 + (RECWIDTH - textwidth(score_c)) / 2, y1 + 60 + RECHEIGHT / 2 - textheight(score_c), score_c);
+
+	
 }
 
 // 游戏结束后的操作判断
 bool overInput() {
+	
 	ExMessage msg;
 	while (peekmessage(&msg, EX_KEY)) {
 		if (GetAsyncKeyState('R') || GetAsyncKeyState('r')) {
@@ -408,7 +441,7 @@ bool overInput() {
 }
 
 int main(){
-
+	
 	initWindows();
 	while (1) {
 		drawBoard();
@@ -423,6 +456,12 @@ int main(){
 		else {
 			stdControl();
 			numSummon();
+			// 每次都判断一下最高分数
+			if (historyScore() < score) {
+				score_f = fopen("score.txt", "w");
+				fprintf(score_f, "%d", score); // 写入新的最高分
+				fclose(score_f);
+			}
 		}
 	}
 	
