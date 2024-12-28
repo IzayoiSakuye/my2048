@@ -1,26 +1,34 @@
 ﻿  2048.cpp
-E:\CS\repository\my2048\2048.cpp(90,12): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-E:\CS\repository\my2048\2048.cpp(92,7): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-E:\CS\repository\my2048\2048.cpp(95,8): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-E:\CS\repository\my2048\2048.cpp(99,13): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-E:\CS\repository\my2048\2048.cpp(146,14): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-E:\CS\repository\my2048\2048.cpp(183,14): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-E:\CS\repository\my2048\2048.cpp(184,2): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-E:\CS\repository\my2048\2048.cpp(220,18): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-E:\CS\repository\my2048\2048.cpp(222,6): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-E:\CS\repository\my2048\2048.cpp(225,6): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-E:\CS\repository\my2048\2048.cpp(230,8): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-E:\CS\repository\my2048\2048.cpp(287,97): warning C4244: “参数”: 从“__int64”转换到“int”，可能丢失数据
-E:\CS\repository\my2048\2048.cpp(287,69): warning C4244: “参数”: 从“__int64”转换到“int”，可能丢失数据
-E:\CS\repository\my2048\2048.cpp(287,50): warning C4244: “参数”: 从“__int64”转换到“int”，可能丢失数据
-E:\CS\repository\my2048\2048.cpp(287,33): warning C4244: “参数”: 从“__int64”转换到“int”，可能丢失数据
-E:\CS\repository\my2048\2048.cpp(298,63): warning C4244: “参数”: 从“__int64”转换到“int”，可能丢失数据
-E:\CS\repository\my2048\2048.cpp(298,32): warning C4244: “参数”: 从“__int64”转换到“int”，可能丢失数据
-E:\CS\repository\my2048\2048.cpp(295,5): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-E:\CS\repository\my2048\2048.cpp(311,30): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-E:\CS\repository\my2048\2048.cpp(312,7): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-E:\CS\repository\my2048\2048.cpp(319,2): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-E:\CS\repository\my2048\2048.cpp(514,2): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-E:\CS\repository\my2048\2048.cpp(518,2): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-E:\CS\repository\my2048\2048.cpp(563,15): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\CS\repository\my2048\2048.cpp(101,12): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\CS\repository\my2048\2048.cpp(103,7): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\CS\repository\my2048\2048.cpp(106,8): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\CS\repository\my2048\2048.cpp(110,13): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\CS\repository\my2048\2048.cpp(157,14): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\CS\repository\my2048\2048.cpp(172,15): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\CS\repository\my2048\2048.cpp(177,9): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\CS\repository\my2048\2048.cpp(179,3): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\CS\repository\my2048\2048.cpp(189,15): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\CS\repository\my2048\2048.cpp(217,2): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\CS\repository\my2048\2048.cpp(261,3): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\CS\repository\my2048\2048.cpp(270,2): warning C4996: 'getch': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _getch. See online help for details.
+E:\CS\repository\my2048\2048.cpp(309,14): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\CS\repository\my2048\2048.cpp(315,2): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\CS\repository\my2048\2048.cpp(350,18): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\CS\repository\my2048\2048.cpp(352,6): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\CS\repository\my2048\2048.cpp(355,6): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\CS\repository\my2048\2048.cpp(360,8): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\CS\repository\my2048\2048.cpp(416,104): warning C4244: “参数”: 从“__int64”转换到“int”，可能丢失数据
+E:\CS\repository\my2048\2048.cpp(416,73): warning C4244: “参数”: 从“__int64”转换到“int”，可能丢失数据
+E:\CS\repository\my2048\2048.cpp(416,52): warning C4244: “参数”: 从“__int64”转换到“int”，可能丢失数据
+E:\CS\repository\my2048\2048.cpp(416,34): warning C4244: “参数”: 从“__int64”转换到“int”，可能丢失数据
+E:\CS\repository\my2048\2048.cpp(427,64): warning C4244: “参数”: 从“__int64”转换到“int”，可能丢失数据
+E:\CS\repository\my2048\2048.cpp(427,33): warning C4244: “参数”: 从“__int64”转换到“int”，可能丢失数据
+E:\CS\repository\my2048\2048.cpp(424,6): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\CS\repository\my2048\2048.cpp(440,30): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\CS\repository\my2048\2048.cpp(441,7): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\CS\repository\my2048\2048.cpp(448,2): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\CS\repository\my2048\2048.cpp(651,2): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\CS\repository\my2048\2048.cpp(655,2): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\CS\repository\my2048\2048.cpp(697,3): warning C4996: 'scanf': This function or variable may be unsafe. Consider using scanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\CS\repository\my2048\2048.cpp(714,15): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
   my2048.vcxproj -> E:\CS\repository\my2048\x64\Debug\my2048.exe

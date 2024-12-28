@@ -16,6 +16,8 @@
 // 宏定义结果显示框尺寸
 #define RECWIDTH 400
 #define RECHEIGHT 400
+// 宏定义玩家名字长度
+#define NAME 50
 
 // 用枚举类型设置各种数字以及背景颜色
 enum color {
@@ -35,6 +37,13 @@ enum color {
 	TT_FO_EI = RGB(242,17,158), // 2048
 
 };
+// 使用链表记录玩家信息
+typedef struct Player {
+	char name[NAME];
+	int score;
+	struct Player* next;
+} Player;
+Player* ranking_head = NULL; // 初始化链表头
 // 记录坐标
 struct pos {
 	long long x;
@@ -47,6 +56,8 @@ FILE *gamestate;
 int nums[SIZE][SIZE];
 // 临时记录分数
 int score;
+// 临时记录玩家名
+char cur_name[NAME];
 // 判断是否可以生成数字
 int flag = false;
 int flaghistory = false;
@@ -156,6 +167,121 @@ void saveGameState() {
 	fclose(gamestate);
 }
 
+// 加载排名
+void loadRankings() {
+	FILE* file = fopen("ranking.txt", "r");
+	if (!file) return;
+
+	char name[NAME];
+	int score;
+	while (fscanf(file, "%s %d", name, &score) == 2) {
+		Player* new_node = (Player*)malloc(sizeof(Player));
+		strcpy(new_node->name, name);
+		new_node->score = score;
+		new_node->next = ranking_head;
+		ranking_head = new_node;
+	}
+	fclose(file);
+}
+
+// 保存排名
+void saveRankings() {
+	FILE* file = fopen("ranking.txt", "w");
+	if (!file) return;
+
+	Player* current = ranking_head;
+	while (current) {
+		fprintf(file, "%s %d\n", current->name, current->score);
+		current = current->next;
+	}
+	fclose(file);
+}
+
+void insertRanking(const char* name, int score) {
+	Player* current = ranking_head;
+	Player* prev = NULL;
+	while (current != NULL) {
+		if (strcmp(current->name, name) == 0) {
+			// 如果找到相同名字的玩家，则更新成绩
+			if (current->score < score) {
+				current->score = score;
+			}
+			return;
+		}
+		prev = current;
+		current = current->next;
+	}
+
+	// 如果没有找到相同名字的玩家，则插入新玩家
+	Player* new_node = (Player*)malloc(sizeof(Player));
+	strcpy(new_node->name, name);
+	new_node->score = score;
+	new_node->next = NULL;
+
+	// 插入到链表的合适位置
+	if (!ranking_head || ranking_head->score < score) {
+		new_node->next = ranking_head;
+		ranking_head = new_node;
+		return;
+	}
+
+	current = ranking_head;
+	while (current->next && current->next->score >= score) {
+		current = current->next;
+	}
+	new_node->next = current->next;
+	current->next = new_node;
+}
+
+// 显示排名
+void displayRankings() {
+	// 创建矩形窗口
+	setfillcolor(RGB(0, 0, 0)); //设置填充颜色
+	int x1 = (WINDOWS_WIDTH - RECWIDTH) / 2;
+	int y1 = (WINDOWS_HEIGHT - RECHEIGHT) / 2 - 50;
+	int x2 = x1 + RECWIDTH;
+	int y2 = y1 + RECHEIGHT - 50;
+	solidrectangle(x1 - 5, y1 - 5, x2 + 5, y2 + 5); // 填充显示结果矩形
+	setfillcolor(BK);
+	solidrectangle(x1, y1, x2, y2);
+
+	// 显示标题
+	settextcolor(BLACK);
+	settextstyle(40, 0, "黑体");
+	outtextxy(RECWIDTH / 2 - textwidth("排名") / 2, 20, "排名");
+
+	// 遍历链表显示前 MAX_DISPLAY 名玩家
+	settextstyle(20, 0, "黑体");
+	Player* current = ranking_head;
+	int rank_h = 80;
+	int rank = 1;
+	while (current != NULL && rank <= 10) {
+		if (ranking_head == NULL) break;
+		char display_text[100];
+		sprintf(display_text, "%d. %s - %d", rank, current->name, current->score);
+		outtextxy(50, rank_h, display_text);
+		rank_h += 30;
+		rank++;
+		current = current->next;
+	}
+
+	// 等待用户按键关闭
+	outtextxy(RECWIDTH / 2 - textwidth("Press any key to exit...") / 2, RECHEIGHT - 40, "Press any key to exit...");
+	getch();
+	closegraph();
+
+}
+
+// 释放链表内存
+void freeChain() {
+	Player* current = ranking_head;
+	while (current) {
+		Player* temp = current;
+		current = current->next;
+		free(temp);
+	}
+}
+
 // 初始化游戏窗口
 void initWindows() {
 	initgraph(WINDOWS_WIDTH, WINDOWS_HEIGHT, EX_SHOWCONSOLE); // 初始化窗口
@@ -178,12 +304,16 @@ void initWindows() {
 	// 分数清零
 	score = 0; 
 }
-void loadSaveData() {
+int loadSaveData() {
 	int state = 0;
 	gamestate = fopen("game_state.txt", "r");
+	if (!gamestate) {
+		// 文件不存在，初始化状态为未加载
+		state = 0;
+		return state;
+	}
 	fscanf(gamestate, "%d\n", &state); // 读取第一行的历史记录标志
 	fclose(gamestate);
-
 	// 如果有历史记录
 	if (state == 1) {
 		// 弹出 GUI 询问用户是否要加载历史记录
@@ -238,6 +368,7 @@ void loadSaveData() {
 				}
 				// 按 'N' 键表示不加载，开始新游戏
 				else if (GetAsyncKeyState('N') || GetAsyncKeyState('n')) {
+					state = 0;
 					break;
 				}
 			}
@@ -245,9 +376,9 @@ void loadSaveData() {
 		}
 	}
 	else {
-		return; // 不需要加载进度 直接重新开始
+		return state; // 不需要加载进度 直接重新开始
 	}
-	return;
+	return state;
 }
 
 
@@ -260,42 +391,42 @@ void drawBoard() {
 	// 二维数组遍历填充格子颜色,初始化为没有数字的颜色
 	for (int i = 0; i < SIZE; i++) {
 		for (int j = 0; j < SIZE; j++) {
-			// 按照数字填充格子颜色
-			enum color grid_color;
-			switch (nums[i][j])
-			{
-			case 0: grid_color = ZERO; break;
-			case 2: grid_color = TWO; break;
-			case 4: grid_color = FOUR; break;
-			case 8: grid_color = EIGHT; break;
-			case 16: grid_color = SIXTE; break;
-			case 32: grid_color = THI_TW; break;
-			case 64: grid_color = SIX_FO; break;
-			case 128: grid_color = OH_TW_EI; break;
-			case 256: grid_color = TH_FI_SI; break;
-			case 512: grid_color = FH_TWEL; break;
-			case 1024: grid_color = OT_TW_FO; break;
-			case 2048: grid_color = TT_FO_EI; break;
-			default:
-				break;
-			}
-			setfillcolor(grid_color); //设置填充颜色
-			
-			// 填充无边框矩形，注意二维坐标从左上角开始，函数四个参数分别为左上角xy与右下角xy
-			solidrectangle(grid_pos[i][j].x,grid_pos[i][j].y,grid_pos[i][j].x+GRID_WIDTH,grid_pos[i][j].y+GRID_WIDTH);
-			// 设置每一格的文字
-			if (nums[i][j]) {
-				char number[5]; // 储存数字字符串
-				settextcolor(RGB(255, 255, 255));
-				if (nums[i][j] == 2 || nums[i][j] == 4) settextcolor(RGB(119, 110, 101));  // 给2和4换一个深色
-				settextstyle(40, 0, "Times New Roman"); // 设置字号与字体
-				setbkmode(TRANSPARENT); // 设置文字背景色为透明
-				sprintf(number, "%d", nums[i][j]); // 将数组中的整数变为字符串存储
-				int text_width = GRID_WIDTH/2 - textwidth(number)/2; // 计算字符宽度
-				int text_height = GRID_WIDTH / 2 - textheight(number) / 2; // 计算字符高度
-				outtextxy(grid_pos[i][j].x + text_width, grid_pos[i][j].y + text_height, number); // 居中显示数字
-			}
+				// 按照数字填充格子颜色
+				enum color grid_color;
+				switch (nums[i][j])
+				{
+				case 0: grid_color = ZERO; break;
+				case 2: grid_color = TWO; break;
+				case 4: grid_color = FOUR; break;
+				case 8: grid_color = EIGHT; break;
+				case 16: grid_color = SIXTE; break;
+				case 32: grid_color = THI_TW; break;
+				case 64: grid_color = SIX_FO; break;
+				case 128: grid_color = OH_TW_EI; break;
+				case 256: grid_color = TH_FI_SI; break;
+				case 512: grid_color = FH_TWEL; break;
+				case 1024: grid_color = OT_TW_FO; break;
+				case 2048: grid_color = TT_FO_EI; break;
+				default:
+					break;
+				}
+				setfillcolor(grid_color); //设置填充颜色
 
+				// 填充无边框矩形，注意二维坐标从左上角开始，函数四个参数分别为左上角xy与右下角xy
+				solidrectangle(grid_pos[i][j].x, grid_pos[i][j].y, grid_pos[i][j].x + GRID_WIDTH, grid_pos[i][j].y + GRID_WIDTH);
+				// 设置每一格的文字
+				if (nums[i][j]) {
+					char number[5]; // 储存数字字符串
+					settextcolor(RGB(255, 255, 255));
+					if (nums[i][j] == 2 || nums[i][j] == 4) settextcolor(RGB(119, 110, 101));  // 给2和4换一个深色
+					settextstyle(40, 0, "Times New Roman"); // 设置字号与字体
+					setbkmode(TRANSPARENT); // 设置文字背景色为透明
+					sprintf(number, "%d", nums[i][j]); // 将数组中的整数变为字符串存储
+					int text_width = GRID_WIDTH / 2 - textwidth(number) / 2; // 计算字符宽度
+					int text_height = GRID_WIDTH / 2 - textheight(number) / 2; // 计算字符高度
+					outtextxy(grid_pos[i][j].x + text_width, grid_pos[i][j].y + text_height, number); // 居中显示数字
+				}
+			
 		}
 	}
 	
@@ -355,7 +486,7 @@ void left() {
 			}
 		}
 	}
-	printf("left\n");
+	//printf("left\n");
 }
 
 // 右移
@@ -387,7 +518,7 @@ void right() {
 			}
 		}
 	}
-	printf("right\n");
+	//printf("right\n");
 }
 
 // 上移
@@ -419,7 +550,7 @@ void up() {
 			}
 		}
 	}
-	printf("up\n");
+	//printf("up\n");
 }
 
 // 下移
@@ -451,24 +582,30 @@ void down() {
 			}
 		}
 	}
-	printf("down\n");
+	//printf("down\n");
 }
 // 控制数字移动
 void stdControl() {
 	ExMessage msg;
+	int processed = false; // 标记是否已经移动过
+	
 	while (peekmessage(&msg, EX_KEY)) {
 		// 从窗口中读取按键信息(wasd或WASD或方向键或退出)
-		if (GetAsyncKeyState(VK_UP) & 0x8000 || GetAsyncKeyState('w') || GetAsyncKeyState('W')) {
+		if (!processed && GetAsyncKeyState(VK_UP) & 0x8000 || GetAsyncKeyState('w') || GetAsyncKeyState('W')) {
 			up();
+			processed = true;
 		}
-		else if (GetAsyncKeyState(VK_LEFT) & 0x8000 || GetAsyncKeyState('a') || GetAsyncKeyState('A')) {
+		else if (!processed && GetAsyncKeyState(VK_LEFT) & 0x8000 || GetAsyncKeyState('a') || GetAsyncKeyState('A')) {
 			left();
+			processed = true;
 		}
-		else if (GetAsyncKeyState(VK_DOWN) & 0x8000 || GetAsyncKeyState('s') || GetAsyncKeyState('S')) {
+		else if (!processed && GetAsyncKeyState(VK_DOWN) & 0x8000 || GetAsyncKeyState('s') || GetAsyncKeyState('S')) {
 			down();
+			processed = true;
 		}
-		else if (GetAsyncKeyState(VK_RIGHT) & 0x8000 || GetAsyncKeyState('d') || GetAsyncKeyState('D')) {
+		else if (!processed && GetAsyncKeyState(VK_RIGHT) & 0x8000 || GetAsyncKeyState('d') || GetAsyncKeyState('D')) {
 			right();
+			processed = true;
 		}
 		else if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {
 			flaghistory = true;
@@ -505,19 +642,25 @@ void showResult(const char* message) {
 	outtextxy(x1 + (RECWIDTH - textwidth(TIP1)) / 2, y1 - 50 + RECHEIGHT / 2 - textheight(TIP1), TIP1);
 	const char TIP2[100] = "Press \"Esc\" to quit.";
 	outtextxy(x1 + (RECWIDTH - textwidth(TIP2)) / 2, y1 - 20 + RECHEIGHT / 2 - textheight(TIP2), TIP2);
+	const char TIP3[100] = "Press \"L\" or \"l\" to show the ranking.";
+	outtextxy(x1 + (RECWIDTH - textwidth(TIP3)) / 2, y1 +10 + RECHEIGHT / 2 - textheight(TIP3), TIP3);
 
 	// 输出分数
 	settextstyle(30, 0, "Times New Roman"); // 设置字号与字体
 	char score1[100];
 	sprintf(score1, "Scores: %d", score);
-	outtextxy(x1 + (RECWIDTH - textwidth(score1)) / 2, y1 + 30  + RECHEIGHT / 2 - textheight(score1), score1);
+	outtextxy(x1 + (RECWIDTH - textwidth(score1)) / 2, y1 + 50  + RECHEIGHT / 2 - textheight(score1), score1);
 
 	char score_c[20];
 	sprintf(score_c, "Highest Scores:%d", historyScore());
 	//sprintf(score2, "Highest Scores: %d", historyScore());
-	outtextxy(x1 + (RECWIDTH - textwidth(score_c)) / 2, y1 + 60 + RECHEIGHT / 2 - textheight(score_c), score_c);
+	outtextxy(x1 + (RECWIDTH - textwidth(score_c)) / 2, y1 + 80 + RECHEIGHT / 2 - textheight(score_c), score_c);
 
+	// 修改并输出排名
+	insertRanking(cur_name, score); // 更新排名
+	saveRankings(); // 保存到文件
 	
+	freeChain(); // 释放链表内存
 }
 
 // 游戏结束后的操作判断
@@ -527,6 +670,11 @@ int overInput() {
 	while (peekmessage(&msg, EX_KEY)) {
 		if (GetAsyncKeyState('R') || GetAsyncKeyState('r')) {
 			closegraph();
+			initWindows();
+			return true;
+		}
+		else if (GetAsyncKeyState('L') || GetAsyncKeyState('l')) {
+			displayRankings();
 			initWindows();
 			return true;
 		}
@@ -540,9 +688,14 @@ int overInput() {
 }
 
 int main(){
-	
+	int is_load = 0;
 	initWindows();
-	loadSaveData();
+	is_load = loadSaveData();
+	loadRankings();
+	if (!is_load) {
+		printf("请输入您的姓名：");
+		scanf("%s", cur_name);
+	}
 	while (1) {
 		drawBoard();
 		if (isGameWin()) {
@@ -563,6 +716,7 @@ int main(){
 				fclose(score_f);
 			}
 			saveGameState();
+			
 		}
 	}
 	
