@@ -173,11 +173,11 @@ void loadRankings() {
 	if (!file) return;
 
 	char name[NAME];
-	int score;
-	while (fscanf(file, "%s %d", name, &score) == 2) {
+	int l_score = 0;
+	while (fscanf(file, "%s %d", name, &l_score) == 2) {
 		Player* new_node = (Player*)malloc(sizeof(Player));
 		strcpy(new_node->name, name);
-		new_node->score = score;
+		new_node->score = l_score;
 		new_node->next = ranking_head;
 		ranking_head = new_node;
 	}
@@ -197,14 +197,14 @@ void saveRankings() {
 	fclose(file);
 }
 
-void insertRanking(const char* name, int score) {
+void insertRanking(const char* i_name, int i_score) {
 	Player* current = ranking_head;
 	Player* prev = NULL;
 	while (current != NULL) {
-		if (strcmp(current->name, name) == 0) {
+		if (strcmp(current->name, i_name) == 0) {
 			// 如果找到相同名字的玩家，则更新成绩
-			if (current->score < score) {
-				current->score = score;
+			if (current->score < i_score) {
+				current->score = i_score;
 			}
 			return;
 		}
@@ -214,19 +214,19 @@ void insertRanking(const char* name, int score) {
 
 	// 如果没有找到相同名字的玩家，则插入新玩家
 	Player* new_node = (Player*)malloc(sizeof(Player));
-	strcpy(new_node->name, name);
-	new_node->score = score;
+	strcpy(new_node->name, i_name);
+	new_node->score = i_score;
 	new_node->next = NULL;
 
 	// 插入到链表的合适位置
-	if (!ranking_head || ranking_head->score < score) {
+	if (!ranking_head || ranking_head->score < i_score) {
 		new_node->next = ranking_head;
 		ranking_head = new_node;
 		return;
 	}
 
 	current = ranking_head;
-	while (current->next && current->next->score >= score) {
+	while (current->next && current->next->score >= i_score) {
 		current = current->next;
 	}
 	new_node->next = current->next;
@@ -234,31 +234,23 @@ void insertRanking(const char* name, int score) {
 }
 
 // 显示排名
-void displayRankings() {
-	// 创建矩形窗口
-	setfillcolor(RGB(0, 0, 0)); //设置填充颜色
-	int x1 = (WINDOWS_WIDTH - RECWIDTH) / 2;
-	int y1 = (WINDOWS_HEIGHT - RECHEIGHT) / 2 - 50;
-	int x2 = x1 + RECWIDTH;
-	int y2 = y1 + RECHEIGHT - 50;
-	solidrectangle(x1 - 5, y1 - 5, x2 + 5, y2 + 5); // 填充显示结果矩形
-	setfillcolor(BK);
-	solidrectangle(x1, y1, x2, y2);
+int displayRankings() {
+	BeginBatchDraw(); // 开始批量绘图
+	cleardevice(); // 清屏
 
 	// 显示标题
 	settextcolor(BLACK);
 	settextstyle(40, 0, "黑体");
-	outtextxy(RECWIDTH / 2 - textwidth("排名") / 2, 20, "排名");
+	outtextxy(WINDOWS_WIDTH / 2 - textwidth("排名") / 2, 20, "排名");
 
 	// 遍历链表显示前 MAX_DISPLAY 名玩家
 	settextstyle(20, 0, "黑体");
 	Player* current = ranking_head;
-	int rank_h = 80;
+	int rank_h = 80; 
 	int rank = 1;
 	while (current != NULL && rank <= 10) {
-		if (ranking_head == NULL) break;
 		char display_text[100];
-		sprintf(display_text, "%d. %s - %d", rank, current->name, current->score);
+		sprintf(display_text, "No%d. %s ------- %d分", rank, current->name, current->score);
 		outtextxy(50, rank_h, display_text);
 		rank_h += 30;
 		rank++;
@@ -266,9 +258,25 @@ void displayRankings() {
 	}
 
 	// 等待用户按键关闭
-	outtextxy(RECWIDTH / 2 - textwidth("Press any key to exit...") / 2, RECHEIGHT - 40, "Press any key to exit...");
-	getch();
-	closegraph();
+	outtextxy(WINDOWS_WIDTH / 2 - textwidth("Press \"r\" or \"R\" to restart...") / 2, WINDOWS_HEIGHT-100, "Press \"r\" or \"R\" to restart...");
+	outtextxy(WINDOWS_WIDTH / 2 - textwidth("Press \"Esc\" to quit...") / 2, WINDOWS_HEIGHT - 60, "Press \"Esc\" to quit...");
+
+
+	ExMessage msg;
+	while (peekmessage(&msg, EX_KEY)) {
+		flushmessage(EX_KEY);
+		if (GetAsyncKeyState('R') || GetAsyncKeyState('r')) {
+			return true;
+		}
+		else if (GetAsyncKeyState(VK_ESCAPE) & 0x8000 ) {
+			exit(0);
+		}
+	}
+	//flushmessage(EX_KEY);
+	EndBatchDraw(); // 结束批量绘图
+	return false;
+	
+	
 
 }
 
@@ -280,6 +288,7 @@ void freeChain() {
 		current = current->next;
 		free(temp);
 	}
+	ranking_head = NULL;
 }
 
 // 初始化游戏窗口
@@ -660,7 +669,7 @@ void showResult(const char* message) {
 	insertRanking(cur_name, score); // 更新排名
 	saveRankings(); // 保存到文件
 	
-	freeChain(); // 释放链表内存
+	
 }
 
 // 游戏结束后的操作判断
@@ -674,7 +683,8 @@ int overInput() {
 			return true;
 		}
 		else if (GetAsyncKeyState('L') || GetAsyncKeyState('l')) {
-			displayRankings();
+			while(!displayRankings());
+			closegraph();
 			initWindows();
 			return true;
 		}
@@ -720,6 +730,7 @@ int main(){
 		}
 	}
 	
+	freeChain(); // 释放链表内存
 
 	//system("pause"); // 使窗口保持开启
 	return 0;
