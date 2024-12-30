@@ -2,8 +2,9 @@
 #include <graphics.h> // EasyX图形库头文件
 #include <time.h> // 用于初始化随机数发生器
 #include <conio.h> // 用于键盘操作
-#include <string.h> // 用于与文件数据比较
+#include <string.h> // 用于字符数组操作
 
+/*宏定义全局常量*/
 // 布尔表达
 #define true 1
 #define false 0
@@ -18,7 +19,6 @@
 #define RECHEIGHT 400
 // 宏定义玩家名字长度
 #define NAME 50
-
 // 用枚举类型设置各种数字以及背景颜色
 enum color {
 	REC = RGB(187, 173, 160), // 矩形色
@@ -35,8 +35,9 @@ enum color {
 	FH_TWEL = RGB(255,0,128), // 512
 	OT_TW_FO = RGB(145,0,72), // 1024
 	TT_FO_EI = RGB(242,17,158), // 2048
-
 };
+
+/*定义其他全局变量*/
 // 使用链表记录玩家信息
 typedef struct Player {
 	char name[NAME];
@@ -62,6 +63,7 @@ char cur_name[NAME];
 int flag = false;
 int flaghistory = false;
 
+/*每次移动时生成新数字用到的函数*/
 // 随机产生数字
 int randomNums() {
 	time_t t1; // 用时间作为srand的seed，防止每次随机数都一样
@@ -77,17 +79,14 @@ void randomPos() {
 		srand((unsigned)time(&t2));
 		int x = rand() % SIZE;
 		int y = rand() % SIZE;
-
 		if (nums[x][y] == 0) {
 			nums[x][y] = randomNums();
 			break;
 		}
-
 	}
-
 }
 
-// 判断是否可以产生数字，若可以变产生数字
+// 判断是否可以产生数字，若有数字移动则产生数字
 void numSummon() {
 	if (flag) {
 		randomPos();
@@ -95,15 +94,61 @@ void numSummon() {
 	}
 }
 
+/*游戏记录存储与读取相关函数*/
+// 存储游戏记录
+void saveGameState() {
+	gamestate = fopen("game_state.txt", "w");
+	fprintf(gamestate, "%d\n", flaghistory);// 保存历史记录状态
+	fprintf(gamestate, "%d\n", score);// 保存分数
+
+	// 保存棋盘上的数字
+	for (int i = 0; i < SIZE; i++) {
+		for (int j = 0; j < SIZE; j++) {
+			fprintf(gamestate, "%d ", nums[i][j]);
+		}
+		fprintf(gamestate, "\n");
+	}
+	fclose(gamestate);
+}
+
+// 获取最高分数
+int getScore(const char* i_name) {
+	FILE* file = fopen("ranking.txt", "r");
+	if (!file) {
+		// 如果文件不存在，返回默认值
+		return 0;
+	}
+
+	char name[NAME];
+	int score = 0;
+	int highest_score = 0;
+
+	// 遍历文件内容
+	while (fscanf(file, "%s %d", name, &score) == 2) {
+		if (strcmp(name, i_name) == 0) {
+			if (score > highest_score) {
+				highest_score = score;
+			}
+		}
+	}
+
+	fclose(file);
+	return highest_score;
+
+}
+
 // 获取历史分数
 int historyScore() {
-	int h_score=0;
+	int h_score=0,t_score=0;
+	char t_name[NAME];
 	score_f = fopen("score.txt", "r");
 	if (score_f) {
-		if (fscanf(score_f, "%d", &h_score) != 1) {
-			h_score = 0; // 如果读取失败，默认分数为0
+		while (fscanf(score_f, "%s %d", t_name, &t_score) == 2) {
+			if (strcmp(t_name, cur_name) == 0) {
+				h_score = t_score;
+				break;
+			}
 		}
-		else fscanf(score_f, "%d", &h_score); // 读取分数
 		fclose(score_f);
 	}
 	else {
@@ -112,8 +157,238 @@ int historyScore() {
 		fclose(score_f);
 	}
 	return h_score;
-
 }
+
+// 载入历史数据
+int loadSaveData() {
+	int state = 0;
+	gamestate = fopen("game_state.txt", "r");
+	if (!gamestate) {
+		// 文件不存在，初始化状态为未加载
+		state = 0;
+		return state;
+	}
+	fscanf(gamestate, "%d\n", &state); // 读取第一行的历史记录标志
+	fclose(gamestate);
+	// 如果有历史记录
+	if (state == 1) {
+		// 弹出窗口询问用户是否要加载历史记录
+		setfillcolor(RGB(0, 0, 0)); // 设置填充颜色
+		int x1 = (WINDOWS_WIDTH - RECWIDTH) / 2;
+		int y1 = (WINDOWS_HEIGHT - RECHEIGHT) / 2;
+		int x2 = x1 + RECWIDTH;
+		int y2 = y1 + RECHEIGHT - 100;
+		solidrectangle(x1 - 5, y1 - 5, x2 + 5, y2 + 5); // 填充显示结果矩形
+		setfillcolor(BK);
+		solidrectangle(x1, y1, x2, y2);
+
+		// 提示信息
+		settextcolor(RGB(255, 0, 0)); // 设置颜色
+		settextstyle(35, 0, "黑体");
+		setbkmode(TRANSPARENT); // 设置文字背景色为透明
+		const char* message = "是否从上次的进度开始？";
+		outtextxy(x1 + (RECWIDTH - textwidth(message)) / 2, y1 - 100 + RECHEIGHT / 2 - textheight(message), message);
+
+		// 提示按键
+		settextcolor(RGB(0, 0, 0)); // 设置颜色
+		settextstyle(25, 0, "黑体");
+		const char* TIP1 = "按\"Y\"或\"y\"读取进度";
+		const char* TIP2 = "按\"N\"或\"n\"重新开始";
+		outtextxy(x1 + (RECWIDTH - textwidth(TIP1)) / 2, y1 + RECHEIGHT / 2 - textheight(TIP1), TIP1);
+		outtextxy(x1 + (RECWIDTH - textwidth(TIP2)) / 2, y1 + 50 + RECHEIGHT / 2 - textheight(TIP2), TIP2);
+
+		// 等待用户输入
+		ExMessage msg;
+		while (1) {
+			if (peekmessage(&msg, EX_KEY)) {
+				// 加载历史记录
+				if (GetAsyncKeyState('Y') || GetAsyncKeyState('y')) {
+					gamestate = fopen("game_state.txt", "r");
+					int state = 0;
+					fscanf(gamestate, "%d\n", &state); // 读取状态
+					fscanf(gamestate, "%d\n", &score); // 读取分数
+
+					// 读取棋盘数据
+					for (int i = 0; i < SIZE; i++) {
+						for (int j = 0; j < SIZE; j++) {
+							fscanf(gamestate, "%d ", &nums[i][j]);
+						}
+					}
+					fclose(gamestate);
+					flaghistory = state; // 恢复历史状态
+					break;
+				}
+				// 不加载，开始新游戏
+				else if (GetAsyncKeyState('N') || GetAsyncKeyState('n')) {
+					state = 0;
+					break;
+				}
+			}
+			flushmessage(EX_KEY);
+		}
+	}
+	else {
+		return state; // 不需要加载进度 直接重新开始
+	}
+	return state;
+}
+
+/*排名相关函数*/
+// 加载排名
+void loadRankings() {
+	FILE* file = fopen("ranking.txt", "r");
+	if (!file) return; // 不存在文件则返回
+	char name[NAME]; // 临时记录昵称
+	int l_score = 0; // 临时记录分数
+
+	while (fscanf(file, "%s %d", name, &l_score) == 2) { // 返回成功匹配与赋值的个数
+		Player* new_node = (Player*)malloc(sizeof(Player)); // 创建一个链表用于读取文件中的数据并开辟空间
+		strcpy(new_node->name, name); // 将读取到的名字存入链表
+		new_node->score = l_score; // 将读取到的分数存入排名链表
+		new_node->next = ranking_head; // 将排名链表头移到下一位
+		ranking_head = new_node; // 当前位置填入数据
+	}
+	fclose(file);
+}
+
+// 保存排名
+void saveRankings() {
+	FILE* file = fopen("ranking.txt", "w");
+	if (!file) return; // 不存在文件则返回
+	Player* current = ranking_head; // 创建临时链表并指向当前排名链表头
+
+	// 将排名链表中的数据写入文件并同时移动临时链表
+	while (current) {
+		fprintf(file, "%s %d\n", current->name, current->score);
+		current = current->next;
+	}
+	fclose(file);
+}
+
+// 冒泡排序对链表排序
+void listSort(Player* head) {
+	if (head == NULL || head->next == NULL) {
+		return; // 链表为空或只有一个节点，无需排序
+	}
+
+	Player* tail = NULL; // 每轮冒泡排序的边界
+	Player* cur;
+
+	while (head != tail) {
+		cur = head;
+		while (cur->next != tail) {
+			if (cur->score < cur->next->score) { // 从高到低排序
+				// 交换分数
+				int tempScore = cur->score;
+				cur->score = cur->next->score;
+				cur->next->score = tempScore;
+
+				// 交换名字
+				char tempName[50];
+				strcpy(tempName, cur->name);
+				strcpy(cur->name, cur->next->name);
+				strcpy(cur->next->name, tempName);
+			}
+			cur = cur->next;
+		}
+		tail = cur; // 更新尾部边界
+	}
+}
+
+// 插入(新的)或更新(已有)排名函数
+void insertRanking(const char* i_name, int i_score) {
+	Player* current = ranking_head;
+	Player* prev = NULL;
+
+	// 检查是否已经存在同名玩家
+	while (current != NULL) {
+		if (strcmp(current->name, i_name) == 0) {
+			// 如果当前分数更高，更新分数
+			if (current->score < i_score) {
+				current->score = i_score;
+			}
+			// 排序链表
+			listSort(ranking_head);
+			return;
+		}
+		prev = current;
+		current = current->next;
+	}
+
+	// 如果没有找到同名玩家，创建新节点
+	Player* new_node = (Player*)malloc(sizeof(Player));
+	// 将数据输入新节点
+	strncpy(new_node->name, i_name, sizeof(new_node->name) - 1); 
+	new_node->name[sizeof(new_node->name) - 1] = '\0';
+	new_node->score = i_score;
+	new_node->next = NULL;
+
+	// 插入到链表尾部
+	if (!ranking_head) { 
+		ranking_head = new_node; // 如果链表为空则放在头部
+	}
+	else {
+		prev->next = new_node; // 否则当前链表下一位
+	}
+	// 排序链表
+	listSort(ranking_head);
+}
+
+// 显示排名
+int displayRankings() {
+	// 双缓冲
+	BeginBatchDraw(); // 开始批量绘图
+	cleardevice(); // 清屏
+
+	// 显示标题
+	settextcolor(BLACK);
+	settextstyle(40, 0, "黑体");
+	outtextxy(WINDOWS_WIDTH / 2 - textwidth("排名") / 2, 20, "排名");
+
+	// 遍历链表显示前10名玩家
+	settextstyle(20, 0, "黑体");
+	Player* current = ranking_head; // 结构体指向排名头
+	int rank_h = 80; // 控制文字显示位置
+	int rank = 1; // 显示排名
+	while (current != NULL && rank <= 10) {
+		char display_text[100];
+		sprintf(display_text, "No%d. %s ------- %d分", rank, current->name, current->score); // 将链表中存储的数据输出
+		outtextxy(50, rank_h, display_text);
+		rank_h += 30; // 每次+30高以显示下一名
+		rank++;
+		current = current->next; // 链表头后移
+	}
+
+	// 等待用户按键关闭
+	outtextxy(WINDOWS_WIDTH / 2 - textwidth("Press \"r\" or \"R\" to restart...") / 2, WINDOWS_HEIGHT - 100, "Press \"r\" or \"R\" to restart...");
+	outtextxy(WINDOWS_WIDTH / 2 - textwidth("Press \"Esc\" to quit...") / 2, WINDOWS_HEIGHT - 60, "Press \"Esc\" to quit...");
+	ExMessage msg;
+	while (peekmessage(&msg, EX_KEY)) {
+		flushmessage(EX_KEY);
+		if (GetAsyncKeyState('R') || GetAsyncKeyState('r')) { // 按r重新开始
+			return true;
+		}
+		else if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) { // 按esc退出
+			exit(0);
+		}
+	}
+	//flushmessage(EX_KEY);
+	EndBatchDraw(); // 结束批量绘图
+	return false;
+}
+
+// 释放链表内存
+void freeChain() {
+	Player* current = ranking_head;
+	while (current) {
+		Player* temp = current;
+		current = current->next;
+		free(temp);
+	}
+	ranking_head = NULL;
+}
+
+/*判断游戏结束条件函数*/
 // 判断是否胜利
 int isGameWin() {
 	for (int i = 0; i < SIZE; i++) {
@@ -152,145 +427,7 @@ int isGameOver() {
 	return true;
 }
 
-// 存储游戏记录
-void saveGameState() {
-	gamestate = fopen("game_state.txt", "w");
-	fprintf(gamestate, "%d\n", flaghistory);// 保存历史记录状态
-	fprintf(gamestate, "%d\n", score);// 保存分数
-	// 保存棋盘上的数字
-	for (int i = 0; i < SIZE; i++) {
-		for (int j = 0; j < SIZE; j++) {
-			fprintf(gamestate, "%d ", nums[i][j]);
-		}
-		fprintf(gamestate, "\n");
-	}
-	fclose(gamestate);
-}
-
-// 加载排名
-void loadRankings() {
-	FILE* file = fopen("ranking.txt", "r");
-	if (!file) return;
-
-	char name[NAME];
-	int l_score = 0;
-	while (fscanf(file, "%s %d", name, &l_score) == 2) {
-		Player* new_node = (Player*)malloc(sizeof(Player));
-		strcpy(new_node->name, name);
-		new_node->score = l_score;
-		new_node->next = ranking_head;
-		ranking_head = new_node;
-	}
-	fclose(file);
-}
-
-// 保存排名
-void saveRankings() {
-	FILE* file = fopen("ranking.txt", "w");
-	if (!file) return;
-
-	Player* current = ranking_head;
-	while (current) {
-		fprintf(file, "%s %d\n", current->name, current->score);
-		current = current->next;
-	}
-	fclose(file);
-}
-
-void insertRanking(const char* i_name, int i_score) {
-	Player* current = ranking_head;
-	Player* prev = NULL;
-	while (current != NULL) {
-		if (strcmp(current->name, i_name) == 0) {
-			// 如果找到相同名字的玩家，则更新成绩
-			if (current->score < i_score) {
-				current->score = i_score;
-			}
-			return;
-		}
-		prev = current;
-		current = current->next;
-	}
-
-	// 如果没有找到相同名字的玩家，则插入新玩家
-	Player* new_node = (Player*)malloc(sizeof(Player));
-	strcpy(new_node->name, i_name);
-	new_node->score = i_score;
-	new_node->next = NULL;
-
-	// 插入到链表的合适位置
-	if (!ranking_head || ranking_head->score < i_score) {
-		new_node->next = ranking_head;
-		ranking_head = new_node;
-		return;
-	}
-
-	current = ranking_head;
-	while (current->next && current->next->score >= i_score) {
-		current = current->next;
-	}
-	new_node->next = current->next;
-	current->next = new_node;
-}
-
-// 显示排名
-int displayRankings() {
-	BeginBatchDraw(); // 开始批量绘图
-	cleardevice(); // 清屏
-
-	// 显示标题
-	settextcolor(BLACK);
-	settextstyle(40, 0, "黑体");
-	outtextxy(WINDOWS_WIDTH / 2 - textwidth("排名") / 2, 20, "排名");
-
-	// 遍历链表显示前 MAX_DISPLAY 名玩家
-	settextstyle(20, 0, "黑体");
-	Player* current = ranking_head;
-	int rank_h = 80; 
-	int rank = 1;
-	while (current != NULL && rank <= 10) {
-		char display_text[100];
-		sprintf(display_text, "No%d. %s ------- %d分", rank, current->name, current->score);
-		outtextxy(50, rank_h, display_text);
-		rank_h += 30;
-		rank++;
-		current = current->next;
-	}
-
-	// 等待用户按键关闭
-	outtextxy(WINDOWS_WIDTH / 2 - textwidth("Press \"r\" or \"R\" to restart...") / 2, WINDOWS_HEIGHT-100, "Press \"r\" or \"R\" to restart...");
-	outtextxy(WINDOWS_WIDTH / 2 - textwidth("Press \"Esc\" to quit...") / 2, WINDOWS_HEIGHT - 60, "Press \"Esc\" to quit...");
-
-
-	ExMessage msg;
-	while (peekmessage(&msg, EX_KEY)) {
-		flushmessage(EX_KEY);
-		if (GetAsyncKeyState('R') || GetAsyncKeyState('r')) {
-			return true;
-		}
-		else if (GetAsyncKeyState(VK_ESCAPE) & 0x8000 ) {
-			exit(0);
-		}
-	}
-	//flushmessage(EX_KEY);
-	EndBatchDraw(); // 结束批量绘图
-	return false;
-	
-	
-
-}
-
-// 释放链表内存
-void freeChain() {
-	Player* current = ranking_head;
-	while (current) {
-		Player* temp = current;
-		current = current->next;
-		free(temp);
-	}
-	ranking_head = NULL;
-}
-
+/*游戏画面绘制相关函数*/
 // 初始化游戏窗口
 void initWindows() {
 	initgraph(WINDOWS_WIDTH, WINDOWS_HEIGHT, EX_SHOWCONSOLE); // 初始化窗口
@@ -313,83 +450,6 @@ void initWindows() {
 	// 分数清零
 	score = 0; 
 }
-int loadSaveData() {
-	int state = 0;
-	gamestate = fopen("game_state.txt", "r");
-	if (!gamestate) {
-		// 文件不存在，初始化状态为未加载
-		state = 0;
-		return state;
-	}
-	fscanf(gamestate, "%d\n", &state); // 读取第一行的历史记录标志
-	fclose(gamestate);
-	// 如果有历史记录
-	if (state == 1) {
-		// 弹出 GUI 询问用户是否要加载历史记录
-		setfillcolor(RGB(0, 0, 0)); // 设置填充颜色
-		int x1 = (WINDOWS_WIDTH - RECWIDTH) / 2;
-		int y1 = (WINDOWS_HEIGHT - RECHEIGHT) / 2 ;
-		int x2 = x1 + RECWIDTH;
-		int y2 = y1 + RECHEIGHT - 100;
-		solidrectangle(x1 - 5, y1 - 5, x2 + 5, y2 + 5); // 填充显示结果矩形
-		setfillcolor(BK);
-		solidrectangle(x1, y1, x2, y2);
-
-		// 提示信息
-		settextcolor(RGB(255, 0, 0)); // 设置颜色
-		settextstyle(35, 0, "黑体");
-		setbkmode(TRANSPARENT); // 设置文字背景色为透明
-		const char* message = "是否从上次的进度开始？";
-		outtextxy(x1 + (RECWIDTH - textwidth(message)) / 2, y1 - 100 + RECHEIGHT / 2 - textheight(message), message);
-
-		// 提示按键
-		settextcolor(RGB(0, 0, 0)); // 设置颜色
-		settextstyle(25, 0, "黑体");
-		const char* TIP1 = "按\"Y\"或\"y\"读取进度";
-		const char* TIP2 = "按\"N\"或\"n\"重新开始";
-		outtextxy(x1 + (RECWIDTH - textwidth(TIP1)) / 2, y1  + RECHEIGHT / 2 - textheight(TIP1), TIP1);
-		outtextxy(x1 + (RECWIDTH - textwidth(TIP2)) / 2, y1 +50 + RECHEIGHT / 2 - textheight(TIP2), TIP2);
-
-		// 等待用户输入
-		ExMessage msg;
-		while (1) {
-			if (peekmessage(&msg, EX_KEY)) {
-				// 按 'Y' 键表示加载历史记录
-				if (GetAsyncKeyState('Y') || GetAsyncKeyState('y')) {
-					gamestate = fopen("game_state.txt", "r");
-					int state = 0;
-					fscanf(gamestate, "%d\n", &state);
-
-					// 读取分数
-					fscanf(gamestate, "%d\n", &score);
-
-					// 读取棋盘数据
-					for (int i = 0; i < SIZE; i++) {
-						for (int j = 0; j < SIZE; j++) {
-							fscanf(gamestate, "%d ", &nums[i][j]);
-						}
-					}
-					fclose(gamestate);
-
-					// 恢复历史状态
-					flaghistory = state;
-					break;
-				}
-				// 按 'N' 键表示不加载，开始新游戏
-				else if (GetAsyncKeyState('N') || GetAsyncKeyState('n')) {
-					state = 0;
-					break;
-				}
-			}
-			flushmessage(EX_KEY);
-		}
-	}
-	else {
-		return state; // 不需要加载进度 直接重新开始
-	}
-	return state;
-}
-
 
 // 绘制游戏窗口
 void drawBoard() {
@@ -446,7 +506,9 @@ void drawBoard() {
 	settextstyle(20, 0, "黑体");
 	outtextxy(WINDOWS_WIDTH / 2 + 50+(150-textwidth("HighestScores")) / 2, WINDOWS_HEIGHT - 200 + textheight("HighestScores") / 2, "HighestScores");
 	char score_h[100];
-	if (historyScore() > score) sprintf(score_h, "%d", historyScore());
+	/*if (historyScore() > score) sprintf(score_h, "%d", historyScore());
+	else sprintf(score_h, "%d", score);*/
+	if (getScore(cur_name) > score) sprintf(score_h, "%d", getScore(cur_name));
 	else sprintf(score_h, "%d", score);
 	settextcolor(RGB(0, 0, 0));
 	settextstyle(30, 0, "黑体");
@@ -466,6 +528,8 @@ void drawBoard() {
 	outtextxy((WINDOWS_WIDTH-textwidth(TIPE)) / 2, WINDOWS_HEIGHT -120 + textheight(TIPE) / 2, TIPE);
 	EndBatchDraw(); // 结束批量绘图
 }
+
+/*控制移动相关函数*/
 // 左移
 void left() {
 	for (int j = 0; j < SIZE; j++) {
@@ -495,7 +559,6 @@ void left() {
 			}
 		}
 	}
-	//printf("left\n");
 }
 
 // 右移
@@ -527,7 +590,6 @@ void right() {
 			}
 		}
 	}
-	//printf("right\n");
 }
 
 // 上移
@@ -559,7 +621,6 @@ void up() {
 			}
 		}
 	}
-	//printf("up\n");
 }
 
 // 下移
@@ -591,13 +652,12 @@ void down() {
 			}
 		}
 	}
-	//printf("down\n");
 }
+
 // 控制数字移动
 void stdControl() {
 	ExMessage msg;
 	int processed = false; // 标记是否已经移动过
-	
 	while (peekmessage(&msg, EX_KEY)) {
 		// 从窗口中读取按键信息(wasd或WASD或方向键或退出)
 		if (!processed && GetAsyncKeyState(VK_UP) & 0x8000 || GetAsyncKeyState('w') || GetAsyncKeyState('W')) {
@@ -627,6 +687,7 @@ void stdControl() {
 	//Sleep(100); // 防止过多的输入误触
 }
 
+/*结束画面相关函数*/
 // 游戏结果展示
 void showResult(const char* message) {
 	// 创建矩形窗口
@@ -654,6 +715,10 @@ void showResult(const char* message) {
 	const char TIP3[100] = "Press \"L\" or \"l\" to show the ranking.";
 	outtextxy(x1 + (RECWIDTH - textwidth(TIP3)) / 2, y1 +10 + RECHEIGHT / 2 - textheight(TIP3), TIP3);
 
+	// 修改并输出排名
+	insertRanking(cur_name, score); // 更新排名
+	saveRankings(); // 保存到文件
+
 	// 输出分数
 	settextstyle(30, 0, "Times New Roman"); // 设置字号与字体
 	char score1[100];
@@ -661,14 +726,10 @@ void showResult(const char* message) {
 	outtextxy(x1 + (RECWIDTH - textwidth(score1)) / 2, y1 + 50  + RECHEIGHT / 2 - textheight(score1), score1);
 
 	char score_c[20];
-	sprintf(score_c, "Highest Scores:%d", historyScore());
+	sprintf(score_c, "Highest Scores:%d", getScore(cur_name));
 	//sprintf(score2, "Highest Scores: %d", historyScore());
 	outtextxy(x1 + (RECWIDTH - textwidth(score_c)) / 2, y1 + 80 + RECHEIGHT / 2 - textheight(score_c), score_c);
 
-	// 修改并输出排名
-	insertRanking(cur_name, score); // 更新排名
-	saveRankings(); // 保存到文件
-	
 	
 }
 
@@ -698,40 +759,39 @@ int overInput() {
 }
 
 int main(){
-	int is_load = 0;
-	initWindows();
-	is_load = loadSaveData();
-	loadRankings();
+	int is_load = 0; // 判断有无历史数据
+	initWindows(); // 初始化窗口
+	is_load = loadSaveData(); // 根据有无历史数据判断是否需要加载
+	loadRankings(); // 加载排名
+	// 不需要加载时输入姓名
 	if (!is_load) {
 		printf("请输入您的姓名：");
 		scanf("%s", cur_name);
 	}
+	// 游戏操作
 	while (1) {
 		drawBoard();
-		if (isGameWin()) {
+		if (isGameWin()) { // 游戏胜利
 			showResult("You Win!");
 			while (!overInput()); // 等待用户操作
 		}
-		else if (isGameOver()) {
+		else if (isGameOver()) { // 游戏结束
 			showResult("Game Over");
 			while (!overInput()); // 等待用户操作
 		}
 		else {
-			stdControl();
-			numSummon();
+			stdControl(); // 控制
+			numSummon(); // 生成数字
 			// 每次都判断一下最高分数
 			if (historyScore() < score) {
 				score_f = fopen("score.txt", "w");
 				fprintf(score_f, "%d", score); // 写入新的最高分
 				fclose(score_f);
 			}
-			saveGameState();
+			saveGameState(); // 保存记录
 			
 		}
 	}
-	
 	freeChain(); // 释放链表内存
-
-	//system("pause"); // 使窗口保持开启
 	return 0;
 }
