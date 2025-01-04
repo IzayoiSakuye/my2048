@@ -1,4 +1,5 @@
-mixcp 2092
-mixap 2052
-mixbp 2048
-mixdp 2048
+mixdp 2120
+mixcp 2060
+mixbp 2052
+mixap 2048
+mixep 2048
