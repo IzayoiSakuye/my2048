@@ -1,5 +1,0 @@
-mixdp 2120
-mixcp 2060
-mixbp 2052
-mixap 2048
-mixep 2048
