@@ -427,7 +427,7 @@ void initWindows() {
 	// 随机生成两个数字(2或4)
 	randomPos();
 	randomPos();
-	nums[2][2] = 1024, nums[2][3] = 1024;
+	// nums[2][2] = 1024, nums[2][3] = 1024;
 
 	// 分数清零
 	score = 0;
